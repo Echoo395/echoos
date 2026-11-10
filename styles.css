@@ -183,15 +183,20 @@ a { color: inherit; }
   content: "";
   position: absolute;
   inset: 12% 0;
-  background: linear-gradient(
-    to bottom,
-    transparent 10%,
-    rgba(2, 8, 18, .38) 44%,
-    rgba(2, 8, 18, .3) 50%,
-    transparent 68%
-  );
-  filter: blur(14px);
-  opacity: .42;
+  background:
+    radial-gradient(ellipse 16% 8% at 32% 44%, rgba(1, 5, 13, .55), transparent 72%),
+    radial-gradient(ellipse 20% 6% at 62% 53%, rgba(1, 5, 13, .48), transparent 74%),
+    radial-gradient(ellipse 13% 5% at 78% 47%, rgba(1, 5, 13, .4), transparent 76%),
+    linear-gradient(
+      to bottom,
+      transparent 10%,
+      rgba(2, 8, 18, .38) 44%,
+      rgba(2, 8, 18, .28) 50%,
+      transparent 68%
+    );
+  filter: blur(12px);
+  opacity: .5;
+  mix-blend-mode: multiply;
 }
 
 @keyframes milkyway-drift {
