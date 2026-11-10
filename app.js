@@ -2115,21 +2115,40 @@
 
     const starCount = () => (
       IS_COARSE
-        ? 110
-        : Math.min(280, Math.max(160, Math.round((window.innerWidth * window.innerHeight) / 5500)))
+        ? 170
+        : Math.min(380, Math.max(220, Math.round((window.innerWidth * window.innerHeight) / 3800)))
     );
 
     const makeStars = () => {
-      stars = Array.from({ length: starCount() }, () => ({
+      const fieldStars = Array.from({ length: starCount() }, () => ({
         x: Math.random() * width,
         y: Math.random() * height,
-        radius: 0.45 + Math.random() * 1.3,
-        alpha: 0.3 + Math.random() * 0.62,
+        radius: 0.5 + Math.random() * 1.5,
+        alpha: 0.34 + Math.random() * 0.62,
         phase: Math.random() * Math.PI * 2,
         twinkle: 0.35 + Math.random() * 1.15,
         drift: 0.0015 + Math.random() * 0.0035,
-        bright: Math.random() > 0.84
+        bright: Math.random() > 0.9,
+        galaxy: false
       }));
+
+      const galaxyCount = IS_COARSE ? 85 : 220;
+      const galaxyStars = Array.from({ length: galaxyCount }, () => {
+        const t = Math.random();
+        return {
+          x: t * width + (Math.random() - 0.5) * width * 0.1,
+          y: height * (0.04 + t * 0.92) + (Math.random() - 0.5) * height * 0.14,
+          radius: 0.28 + Math.random() * 0.78,
+          alpha: 0.14 + Math.random() * 0.34,
+          phase: Math.random() * Math.PI * 2,
+          twinkle: 0.28 + Math.random() * 1.3,
+          drift: 0.001 + Math.random() * 0.0028,
+          bright: false,
+          galaxy: true
+        };
+      });
+
+      stars = fieldStars.concat(galaxyStars);
     };
 
     const resize = () => {
@@ -2157,19 +2176,34 @@
 
     const spawnMeteor = (now) => {
       const fromLeft = Math.random() > 0.5;
-      const speedX = (0.22 + Math.random() * 0.13) * (fromLeft ? 1 : -1);
-      const speedY = 0.15 + Math.random() * 0.1;
+      const speedX = (0.28 + Math.random() * 0.15) * (fromLeft ? 1 : -1);
+      const speedY = 0.18 + Math.random() * 0.11;
       meteors.push({
         x: fromLeft ? -30 - Math.random() * 80 : width + 30 + Math.random() * 80,
-        y: -30 - Math.random() * height * 0.25,
+        y: -30 - Math.random() * height * 0.28,
         vx: speedX,
         vy: speedY,
         age: 0,
-        life: 800 + Math.random() * 520,
-        length: 110 + Math.random() * 130,
-        width: 0.9 + Math.random() * 0.7
+        life: 900 + Math.random() * 620,
+        length: 165 + Math.random() * 190,
+        width: 1.1 + Math.random() * 1.05
       });
-      nextMeteorAt = now + 3800 + Math.random() * 4400;
+
+      if (Math.random() < 0.28) {
+        const secondLeft = Math.random() > 0.5;
+        meteors.push({
+          x: secondLeft ? -40 - Math.random() * 60 : width + 40 + Math.random() * 60,
+          y: -80 - Math.random() * height * 0.22,
+          vx: (0.26 + Math.random() * 0.12) * (secondLeft ? 1 : -1),
+          vy: 0.17 + Math.random() * 0.08,
+          age: -220 - Math.random() * 260,
+          life: 850 + Math.random() * 500,
+          length: 130 + Math.random() * 150,
+          width: 0.9 + Math.random() * 0.7
+        });
+      }
+
+      nextMeteorAt = now + 2400 + Math.random() * 3600;
     };
 
     const draw = (now) => {
@@ -2198,13 +2232,15 @@
         const y = star.y;
 
         if (star.bright) {
-          ctx.fillStyle = `rgba(128, 194, 255, ${(alpha * 0.12).toFixed(3)})`;
+          ctx.fillStyle = `rgba(128, 194, 255, ${(alpha * 0.1).toFixed(3)})`;
           ctx.beginPath();
-          ctx.arc(x, y, star.radius * 5.4, 0, Math.PI * 2);
+          ctx.arc(x, y, star.radius * 5.2, 0, Math.PI * 2);
           ctx.fill();
         }
 
-        ctx.fillStyle = `rgba(198, 226, 255, ${alpha.toFixed(3)})`;
+        ctx.fillStyle = star.galaxy
+          ? `rgba(177, 205, 248, ${alpha.toFixed(3)})`
+          : `rgba(202, 229, 255, ${alpha.toFixed(3)})`;
         ctx.beginPath();
         ctx.arc(x, y, star.radius, 0, Math.PI * 2);
         ctx.fill();
@@ -2214,17 +2250,18 @@
 
       meteors = meteors.filter((meteor) => {
         meteor.age += dt;
+        if (meteor.age < 0) return true;
         meteor.x += meteor.vx * dt;
         meteor.y += meteor.vy * dt;
 
         if (meteor.age > meteor.life || meteor.y > height + 80) return false;
 
-        const tailX = meteor.x - meteor.vx * meteor.length * 2.8;
-        const tailY = meteor.y - meteor.vy * meteor.length * 2.8;
+        const tailX = meteor.x - meteor.vx * meteor.length * 3;
+        const tailY = meteor.y - meteor.vy * meteor.length * 3;
         const fade = Math.sin(Math.min(1, meteor.age / meteor.life) * Math.PI);
         const trail = ctx.createLinearGradient(meteor.x, meteor.y, tailX, tailY);
-        trail.addColorStop(0, `rgba(228, 244, 255, ${(0.85 * fade).toFixed(3)})`);
-        trail.addColorStop(0.26, `rgba(146, 205, 255, ${(0.4 * fade).toFixed(3)})`);
+        trail.addColorStop(0, `rgba(242, 250, 255, ${(0.98 * fade).toFixed(3)})`);
+        trail.addColorStop(0.22, `rgba(176, 220, 255, ${(0.55 * fade).toFixed(3)})`);
         trail.addColorStop(1, 'rgba(90, 160, 255, 0)');
 
         ctx.save();
@@ -2236,9 +2273,11 @@
         ctx.lineTo(tailX, tailY);
         ctx.stroke();
 
-        ctx.fillStyle = `rgba(235, 248, 255, ${(0.9 * fade).toFixed(3)})`;
+        ctx.shadowColor = 'rgba(160, 216, 255, .95)';
+        ctx.shadowBlur = 14;
+        ctx.fillStyle = `rgba(245, 252, 255, ${(0.96 * fade).toFixed(3)})`;
         ctx.beginPath();
-        ctx.arc(meteor.x, meteor.y, 1.15, 0, Math.PI * 2);
+        ctx.arc(meteor.x, meteor.y, 1.45, 0, Math.PI * 2);
         ctx.fill();
         ctx.restore();
         return true;
@@ -2248,7 +2287,7 @@
     resize();
     window.addEventListener('resize', resize);
     if (!REDUCED_MOTION) {
-      nextMeteorAt = performance.now() + 3200 + Math.random() * 3000;
+      nextMeteorAt = performance.now() + 1100 + Math.random() * 1500;
       rafId = window.requestAnimationFrame(draw);
     }
     window.addEventListener('pagehide', () => window.cancelAnimationFrame(rafId));
