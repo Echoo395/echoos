@@ -94,10 +94,10 @@
             </div>
 
             <div class="contact-hotspots" id="contactHotspots" hidden>
-              <a class="contact-hotspot" id="contactAddress" href="https://uri.amap.com/search?keyword=浙江温州乐清市天成街道天成工业区宁康东路2892号" target="_blank" rel="noopener" aria-label="打开公司地址地图" data-x="55" data-y="1680" data-w="620" data-h="45"></a>
-              <a class="contact-hotspot" id="contactPhone" href="tel:+8613587798177" aria-label="拨打电话 13587798177" data-x="50" data-y="1738" data-w="230" data-h="42"></a>
-              <a class="contact-hotspot" id="contactEmail" href="mailto:Una@chaserr.cc" aria-label="发送邮件到 Una@chaserr.cc" data-x="45" data-y="1795" data-w="255" data-h="40"></a>
-              <a class="contact-hotspot" id="contactWebsite" href="https://cn.qianxunele.com/" target="_blank" rel="noopener" aria-label="打开千寻电气官网" data-x="48" data-y="1850" data-w="365" data-h="42"></a>
+              <button class="contact-hotspot" id="contactAddress" type="button" aria-label="查看地址" data-contact="address" data-x="55" data-y="1680" data-w="620" data-h="45"></button>
+              <button class="contact-hotspot" id="contactPhone" type="button" aria-label="查看电话" data-contact="phone" data-x="50" data-y="1738" data-w="230" data-h="42"></button>
+              <button class="contact-hotspot" id="contactEmail" type="button" aria-label="查看邮箱" data-contact="email" data-x="45" data-y="1795" data-w="255" data-h="40"></button>
+              <button class="contact-hotspot" id="contactWebsite" type="button" aria-label="查看网址" data-contact="website" data-x="48" data-y="1850" data-w="365" data-h="42"></button>
             </div>
 
             <div class="gutter" id="gutter" aria-hidden="true"></div>
@@ -322,6 +322,49 @@
       <div class="pdf-progress" aria-hidden="true"><span id="pdfBar"></span></div>
       <p class="pdf-note">共 70 页，按图册顺序生成。每页带很浅的“千寻电气 · 产品图册”水印，不影响阅读。生成期间请保持页面打开。</p>
       <button class="pdf-cancel" id="pdfCancel" type="button">取消</button>
+    </div>
+  </div>
+
+  <div class="contact-hover" id="contactHover" role="tooltip" aria-hidden="true">
+    <span class="contact-hover__label" id="contactHoverLabel"></span>
+    <span class="contact-hover__value" id="contactHoverValue"></span>
+    <button class="contact-hover__copy" id="contactHoverCopy" type="button">复制</button>
+  </div>
+
+  <div class="contact-modal" id="contactModal" role="dialog" aria-modal="true" aria-labelledby="contactTitle" aria-hidden="true">
+    <div class="contact-panel">
+      <div class="modal-head">
+        <div>
+          <span class="eyebrow">CONTACT</span>
+          <h2 id="contactTitle">联系方式</h2>
+        </div>
+        <button class="drawer-close" id="contactClose" type="button" aria-label="关闭联系方式">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg>
+        </button>
+      </div>
+      <div class="contact-list" id="contactList">
+        <div class="contact-row" data-contact-row="address">
+          <span class="contact-row__label">地址</span>
+          <span class="contact-row__value">浙江温州乐清市天成街道天成工业区宁康东路2892号</span>
+          <button class="contact-row__copy" type="button" data-copy-contact="address">复制</button>
+        </div>
+        <div class="contact-row" data-contact-row="phone">
+          <span class="contact-row__label">电话</span>
+          <span class="contact-row__value">135 8779 8177</span>
+          <button class="contact-row__copy" type="button" data-copy-contact="phone">复制</button>
+        </div>
+        <div class="contact-row" data-contact-row="email">
+          <span class="contact-row__label">邮箱</span>
+          <span class="contact-row__value">Una@chaserr.cc</span>
+          <button class="contact-row__copy" type="button" data-copy-contact="email">复制</button>
+        </div>
+        <div class="contact-row" data-contact-row="website">
+          <span class="contact-row__label">网址</span>
+          <span class="contact-row__value">https://cn.qianxunele.com</span>
+          <button class="contact-row__copy" type="button" data-copy-contact="website">复制</button>
+        </div>
+      </div>
+      <p class="contact-note">点击“复制”即可复制内容，不会拨号、发送邮件或跳转网页。</p>
     </div>
   </div>
 

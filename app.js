@@ -117,7 +117,14 @@
     pdfCancel: $('#pdfCancel'),
     pdfStatus: $('#pdfStatus'),
     pdfBar: $('#pdfBar'),
-    contactHotspots: $('#contactHotspots')
+    contactHotspots: $('#contactHotspots'),
+    contactHover: $('#contactHover'),
+    contactHoverLabel: $('#contactHoverLabel'),
+    contactHoverValue: $('#contactHoverValue'),
+    contactHoverCopy: $('#contactHoverCopy'),
+    contactModal: $('#contactModal'),
+    contactClose: $('#contactClose'),
+    contactList: $('#contactList')
   };
 
   if (!TOTAL) {
@@ -175,11 +182,36 @@
   let helpOpen = false;
   let pdfOpen = false;
   let pdfJobToken = 0;
+  let contactOpen = false;
+  let contactHoverTimer = 0;
+  let contactHoverKey = '';
   let modalLastFocus = null;
   let searchItems = [];
   let searchActive = -1;
   const PUBLIC_URL = 'https://echoo395.github.io/echoos/';
   const SHARE_QR = 'assets/brand/share-qr.png';
+  const CONTACT_INFO = {
+    address: {
+      label: '地址',
+      value: '浙江温州乐清市天成街道天成工业区宁康东路2892号',
+      copy: '浙江温州乐清市天成街道天成工业区宁康东路2892号'
+    },
+    phone: {
+      label: '电话',
+      value: '135 8779 8177',
+      copy: '13587798177'
+    },
+    email: {
+      label: '邮箱',
+      value: 'Una@chaserr.cc',
+      copy: 'Una@chaserr.cc'
+    },
+    website: {
+      label: '网址',
+      value: 'https://cn.qianxunele.com',
+      copy: 'https://cn.qianxunele.com'
+    }
+  };
   const BACK_PAGE = Math.max(0, TOTAL - 1);
   const CONTACT_SOURCE = { width: 1440, height: 1954 };
 
@@ -1304,6 +1336,7 @@
 
     if (!ready || flip || !leaf) {
       layer.hidden = true;
+      hideContactHover(0);
       return;
     }
 
@@ -2694,6 +2727,115 @@
     showToast(ok ? '图册网址已复制' : '复制失败，请手动选择网址');
   }
 
+  async function copyContactValue(key, button) {
+    const info = CONTACT_INFO[key];
+    if (!info) return;
+    const ok = await copyText(info.copy);
+    showToast(ok ? `${info.label}已复制` : '复制失败，请手动选择内容');
+    if (ok && button) {
+      const original = button.textContent;
+      button.textContent = '已复制';
+      window.setTimeout(() => {
+        if (button.isConnected) button.textContent = original;
+      }, 1200);
+    }
+  }
+
+  function hideContactHover(delay = 90) {
+    window.clearTimeout(contactHoverTimer);
+    contactHoverTimer = window.setTimeout(() => {
+      contactHoverKey = '';
+      if (!dom.contactHover) return;
+      dom.contactHover.classList.remove('is-visible');
+      dom.contactHover.setAttribute('aria-hidden', 'true');
+    }, delay);
+  }
+
+  function showContactHover(button) {
+    if (!ready || contactOpen || isMobileUX() || !button) return;
+    const key = button.dataset.contact;
+    const info = CONTACT_INFO[key];
+    if (!info) return;
+
+    window.clearTimeout(contactHoverTimer);
+    contactHoverKey = key;
+    dom.contactHoverLabel.textContent = info.label;
+    dom.contactHoverValue.textContent = info.value;
+    dom.contactHover.classList.add('is-visible');
+    dom.contactHover.setAttribute('aria-hidden', 'false');
+
+    window.requestAnimationFrame(() => {
+      if (!dom.contactHover.classList.contains('is-visible')) return;
+      const rect = button.getBoundingClientRect();
+      const card = dom.contactHover.getBoundingClientRect();
+      const book = dom.spread.getBoundingClientRect();
+      let left;
+      if (book.left > card.width + 28) {
+        left = book.left - card.width - 14;
+      } else {
+        left = clamp(
+          rect.left + rect.width / 2 - card.width / 2,
+          8,
+          window.innerWidth - card.width - 8
+        );
+      }
+      const top = clamp(
+        rect.top + rect.height / 2 - card.height / 2,
+        8,
+        window.innerHeight - card.height - 8
+      );
+      dom.contactHover.style.left = `${left}px`;
+      dom.contactHover.style.top = `${top}px`;
+    });
+  }
+
+  function openContactModal(key) {
+    if (!ready || contactOpen) return;
+    if (drawerOpen) closeDrawer(false);
+    hideContactHover(0);
+    contactOpen = true;
+    $$('.contact-row', dom.contactList).forEach((row) => {
+      row.classList.toggle('is-current', row.dataset.contactRow === key);
+    });
+    openModal(dom.contactModal, dom.contactClose);
+  }
+
+  function closeContactModal(restoreFocus = true) {
+    if (!contactOpen) return;
+    contactOpen = false;
+    closeModal(dom.contactModal, restoreFocus);
+  }
+
+  function bindContactEvents() {
+    $$('.contact-hotspot').forEach((button) => {
+      button.addEventListener('click', () => openContactModal(button.dataset.contact));
+      button.addEventListener('pointerenter', () => showContactHover(button));
+      button.addEventListener('pointerleave', () => hideContactHover(180));
+      button.addEventListener('focus', () => showContactHover(button));
+      button.addEventListener('blur', () => hideContactHover(180));
+    });
+
+    dom.contactHover.addEventListener('pointerenter', () => {
+      window.clearTimeout(contactHoverTimer);
+    });
+    dom.contactHover.addEventListener('pointerleave', () => hideContactHover(120));
+    dom.contactHoverCopy.addEventListener('click', (event) => {
+      event.stopPropagation();
+      if (contactHoverKey) copyContactValue(contactHoverKey, dom.contactHoverCopy);
+    });
+
+    dom.contactClose.addEventListener('click', () => closeContactModal());
+    dom.contactModal.addEventListener('click', (event) => {
+      if (event.target === dom.contactModal) closeContactModal();
+    });
+    dom.contactModal.addEventListener('keydown', (event) => trapFocus(event, dom.contactModal));
+    $$('[data-copy-contact]', dom.contactModal).forEach((button) => {
+      button.addEventListener('click', () => {
+        copyContactValue(button.dataset.copyContact, button);
+      });
+    });
+  }
+
   function buildHelpList() {
     const mobile = isMobileUX();
     dom.helpMode.textContent = mobile ? '手机版操作' : '电脑版操作';
@@ -2942,6 +3084,7 @@
       if (event.target === dom.pdfModal) closePdfExport();
     });
     dom.pdfModal.addEventListener('keydown', (event) => trapFocus(event, dom.pdfModal));
+    bindContactEvents();
   }
 
 
@@ -3059,6 +3202,14 @@
       if (event.key === 'Escape') {
         event.preventDefault();
         closeHelp();
+      }
+      return;
+    }
+
+    if (contactOpen) {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        closeContactModal();
       }
       return;
     }
