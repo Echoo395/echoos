@@ -2853,14 +2853,15 @@
   }
 
   function openPdfExport() {
-    if (!ready || pdfOpen) return;
+    if (!ready) return;
     if (drawerOpen) closeDrawer(false);
-    pdfOpen = true;
-    const token = ++pdfJobToken;
-    dom.pdfStatus.textContent = '准备生成 PDF…';
-    dom.pdfBar.style.width = '0%';
-    openModal(dom.pdfModal, dom.pdfClose);
-    generatePdf(token);
+    const link = document.createElement('a');
+    link.href = 'assets/qianxun-catalog.pdf';
+    link.download = '千寻电气产品图册.pdf';
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    showToast('PDF 正在下载');
   }
 
   function closePdfExport(restoreFocus = true) {
