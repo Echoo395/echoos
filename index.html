@@ -41,6 +41,12 @@
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5.5h6.5v6.5H4zM13.5 5.5H20v6.5h-6.5zM4 12.5h6.5V19H4zM13.5 12.5H20V19h-6.5z"/></svg>
           <span>目录</span>
         </button>
+        <button class="tool-btn" id="searchBtn" type="button" aria-label="搜索型号或系列" title="搜索（/）">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.6" cy="10.6" r="6.2"/><path d="m15.2 15.2 4.3 4.3"/></svg>
+        </button>
+        <button class="tool-btn tool-btn--desktop" id="pdfBtn" type="button" aria-label="下载整本 PDF" title="下载整本 PDF">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v10m0 0 4-4m-4 4-4-4M5 18h14"/></svg>
+        </button>
         <button class="tool-btn" id="zoomBtn" type="button" aria-label="查看大图" title="查看大图">
           <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.6" cy="10.6" r="6.2"/><path d="m15.2 15.2 4.3 4.3M10.6 7.7v5.8M7.7 10.6h5.8"/></svg>
         </button>
@@ -48,9 +54,15 @@
           <svg class="icon-sound-on" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9.4v5.2h3.3l4.2 3.5V5.9L7.3 9.4H4z"/><path d="M15 8.4a5.2 5.2 0 0 1 0 7.2M17.8 5.8a8.7 8.7 0 0 1 0 12.4"/></svg>
           <svg class="icon-sound-off" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9.4v5.2h3.3l4.2 3.5V5.9L7.3 9.4H4z"/><path d="m15.2 9.2 5 5.6M20.2 9.2l-5 5.6"/></svg>
         </button>
+        <button class="tool-btn" id="shareBtn" type="button" aria-label="分享整本图册" title="分享">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="12" r="2.1"/><circle cx="18" cy="6" r="2.1"/><circle cx="18" cy="18" r="2.1"/><path d="m8 11 7.8-4M8 13l7.8 4"/></svg>
+        </button>
         <button class="tool-btn" id="fullBtn" type="button" aria-label="进入全屏" title="全屏">
           <svg class="icon-expand" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4H4v5M15 4h5v5M9 20H4v-5M15 20h5v-5"/></svg>
           <svg class="icon-compress" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h5V4M20 9h-5V4M4 15h5v5M20 15h-5v5"/></svg>
+        </button>
+        <button class="tool-btn" id="helpBtn" type="button" aria-label="查看操作提示" title="操作提示（?）">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.2"/><path d="M9.7 9.4a2.5 2.5 0 1 1 3.5 2.3c-.8.4-1.2.9-1.2 1.8"/><circle cx="12" cy="16.7" r=".8" fill="currentColor" stroke="none"/></svg>
         </button>
       </nav>
     </header>
@@ -81,6 +93,13 @@
               <span class="blank-paper"></span>
             </div>
 
+            <div class="contact-hotspots" id="contactHotspots" hidden>
+              <a class="contact-hotspot" id="contactAddress" href="https://uri.amap.com/search?keyword=浙江温州乐清市天成街道天成工业区宁康东路2892号" target="_blank" rel="noopener" aria-label="打开公司地址地图" data-x="55" data-y="1680" data-w="620" data-h="45"></a>
+              <a class="contact-hotspot" id="contactPhone" href="tel:+8613587798177" aria-label="拨打电话 13587798177" data-x="50" data-y="1738" data-w="230" data-h="42"></a>
+              <a class="contact-hotspot" id="contactEmail" href="mailto:Una@chaserr.cc" aria-label="发送邮件到 Una@chaserr.cc" data-x="45" data-y="1795" data-w="255" data-h="40"></a>
+              <a class="contact-hotspot" id="contactWebsite" href="https://cn.qianxunele.com/" target="_blank" rel="noopener" aria-label="打开千寻电气官网" data-x="48" data-y="1850" data-w="365" data-h="42"></a>
+            </div>
+
             <div class="gutter" id="gutter" aria-hidden="true"></div>
             <div class="page-shade page-shade--left" id="shadeLeft" aria-hidden="true"></div>
             <div class="page-shade page-shade--right" id="shadeRight" aria-hidden="true"></div>
@@ -104,10 +123,10 @@
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9.2 5.8 6.2 6.2-6.2 6.2"/></svg>
       </button>
 
-      <div class="reading-hint" id="hint" aria-hidden="true">
-        <svg viewBox="0 0 24 24"><path d="M8 11V6.8a1.7 1.7 0 0 1 3.4 0V10m0-1.5a1.7 1.7 0 0 1 3.4 0V11m0-1.3a1.7 1.7 0 0 1 3.4 0v4.6c0 3.3-2.6 5.9-5.9 5.9h-.7a5.7 5.7 0 0 1-4.2-1.9L4 14.2a1.7 1.7 0 0 1 2.5-2.3L8 13.5"/></svg>
-        <span id="hintText">拖动页角翻页 · 双击页面放大</span>
-      </div>
+      <button class="reading-hint" id="hint" type="button" aria-label="查看操作提示">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 11V6.8a1.7 1.7 0 0 1 3.4 0V10m0-1.5a1.7 1.7 0 0 1 3.4 0V11m0-1.3a1.7 1.7 0 0 1 3.4 0v4.6c0 3.3-2.6 5.9-5.9 5.9h-.7a5.7 5.7 0 0 1-4.2-1.9L4 14.2a1.7 1.7 0 0 1 2.5-2.3L8 13.5"/></svg>
+        <span id="hintText">拖动页角翻页 · 双击页面放大 · 操作提示</span>
+      </button>
     </main>
 
     <div class="chapter-ghost" id="chapterGhost" aria-hidden="true">
@@ -169,6 +188,13 @@
       <button class="drawer-tab is-active" id="tocTabDirectory" type="button" role="tab" aria-selected="true" aria-controls="directoryPanel">系列目录</button>
       <button class="drawer-tab" id="tocTabThumbs" type="button" role="tab" aria-selected="false" aria-controls="thumbsPanel" tabindex="-1">页面缩略图</button>
     </div>
+    <div class="drawer-tools">
+      <button class="drawer-pdf-btn" id="pdfBtnDrawer" type="button">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v10m0 0 4-4m-4 4-4-4M5 18h14"/></svg>
+        <span>下载整本 PDF</span>
+        <em>带水印</em>
+      </button>
+    </div>
     <div class="drawer-body" id="drawerBody">
       <div class="drawer-panel" id="directoryPanel" role="tabpanel" aria-labelledby="tocTabDirectory">
         <div class="toc-head">
@@ -213,6 +239,92 @@
     </div>
   </div>
 
+  <div class="search-modal" id="searchModal" role="dialog" aria-modal="true" aria-labelledby="searchTitle" aria-hidden="true">
+    <div class="search-panel">
+      <div class="modal-head">
+        <div>
+          <span class="eyebrow">SEARCH</span>
+          <h2 id="searchTitle">查找型号 / 系列</h2>
+        </div>
+        <button class="drawer-close" id="searchClose" type="button" aria-label="关闭搜索">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg>
+        </button>
+      </div>
+      <div class="search-box">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.6" cy="10.6" r="6.2"/><path d="m15.2 15.2 4.3 4.3"/></svg>
+        <input id="searchInput" type="search" placeholder="输入型号、系列名或页码，例如 QX198A / 33" autocomplete="off" spellcheck="false" aria-label="搜索型号、系列名或页码">
+        <kbd>/</kbd>
+      </div>
+      <div class="search-results" id="searchResults" role="listbox" aria-label="搜索结果"></div>
+      <div class="search-empty" id="searchEmpty" hidden>没有找到对应内容，试试型号的一部分，例如 QX198 或 198A。</div>
+      <div class="search-foot"><span>↑↓ 选择</span><span>Enter 跳转</span><span>Esc 关闭</span></div>
+    </div>
+  </div>
+
+  <div class="share-modal" id="shareModal" role="dialog" aria-modal="true" aria-labelledby="shareTitle" aria-hidden="true">
+    <div class="share-panel">
+      <div class="modal-head">
+        <div>
+          <span class="eyebrow">SHARE</span>
+          <h2 id="shareTitle">分享整本图册</h2>
+        </div>
+        <button class="drawer-close" id="shareClose" type="button" aria-label="关闭分享">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg>
+        </button>
+      </div>
+      <div class="share-body">
+        <div class="share-qr-wrap">
+          <img id="shareQr" src="assets/brand/share-qr.png" alt="千寻电气产品图册二维码">
+        </div>
+        <p class="share-title">扫码查看整本图册</p>
+        <p class="share-sub">微信、手机相机或浏览器扫码</p>
+        <div class="share-url-row">
+          <input id="shareUrl" type="text" readonly value="https://echoo395.github.io/echoos/" aria-label="图册网址">
+          <button id="copyShare" type="button">复制</button>
+        </div>
+        <div class="share-actions">
+          <button id="nativeShare" type="button" hidden>系统分享</button>
+          <a id="downloadQr" href="assets/brand/share-qr.png" download="千寻电气产品图册-二维码.png">保存二维码</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="help-modal" id="helpModal" role="dialog" aria-modal="true" aria-labelledby="helpTitle" aria-hidden="true">
+    <div class="help-panel">
+      <div class="modal-head">
+        <div>
+          <span class="eyebrow">GUIDE</span>
+          <h2 id="helpTitle">操作提示</h2>
+        </div>
+        <button class="drawer-close" id="helpClose" type="button" aria-label="关闭操作提示">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg>
+        </button>
+      </div>
+      <div class="help-mode" id="helpMode">电脑版</div>
+      <div class="help-list" id="helpList"></div>
+      <p class="help-foot">按 <kbd>?</kbd> 随时打开此提示。</p>
+    </div>
+  </div>
+
+  <div class="pdf-modal" id="pdfModal" role="dialog" aria-modal="true" aria-labelledby="pdfTitle" aria-hidden="true">
+    <div class="pdf-panel">
+      <div class="modal-head">
+        <div>
+          <span class="eyebrow">PDF EXPORT</span>
+          <h2 id="pdfTitle">下载整本 PDF</h2>
+        </div>
+        <button class="drawer-close" id="pdfClose" type="button" aria-label="关闭 PDF 下载">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg>
+        </button>
+      </div>
+      <p class="pdf-status" id="pdfStatus">准备生成 PDF…</p>
+      <div class="pdf-progress" aria-hidden="true"><span id="pdfBar"></span></div>
+      <p class="pdf-note">共 70 页，按图册顺序生成。每页带很浅的“千寻电气 · 产品图册”水印，不影响阅读。生成期间请保持页面打开。</p>
+      <button class="pdf-cancel" id="pdfCancel" type="button">取消</button>
+    </div>
+  </div>
+
   <div class="loading" id="loading">
     <div class="loading-inner">
       <div class="loading-mark">
@@ -253,6 +365,7 @@
 
   <script src="data/pages.js"></script>
   <script src="data/toc.js"></script>
+  <script src="vendor/jspdf.umd.min.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
