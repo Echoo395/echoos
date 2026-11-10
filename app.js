@@ -2132,7 +2132,7 @@
         galaxy: false
       }));
 
-      const galaxyCount = IS_COARSE ? 85 : 220;
+      const galaxyCount = IS_COARSE ? 100 : 300;
       const galaxyStars = Array.from({ length: galaxyCount }, () => {
         const t = Math.random();
         return {
