@@ -90,7 +90,34 @@
     intro: $('#intro'),
     chapterGhost: $('#chapterGhost'),
     chapterGhostCode: $('#chapterGhostCode'),
-    chapterGhostName: $('#chapterGhostName')
+    chapterGhostName: $('#chapterGhostName'),
+    searchBtn: $('#searchBtn'),
+    shareBtn: $('#shareBtn'),
+    pdfBtn: $('#pdfBtn'),
+    helpBtn: $('#helpBtn'),
+    searchModal: $('#searchModal'),
+    searchClose: $('#searchClose'),
+    searchInput: $('#searchInput'),
+    searchResults: $('#searchResults'),
+    searchEmpty: $('#searchEmpty'),
+    shareModal: $('#shareModal'),
+    shareClose: $('#shareClose'),
+    shareQr: $('#shareQr'),
+    shareUrl: $('#shareUrl'),
+    copyShare: $('#copyShare'),
+    nativeShare: $('#nativeShare'),
+    downloadQr: $('#downloadQr'),
+    helpModal: $('#helpModal'),
+    helpClose: $('#helpClose'),
+    helpMode: $('#helpMode'),
+    helpList: $('#helpList'),
+    pdfModal: $('#pdfModal'),
+    pdfBtnDrawer: $('#pdfBtnDrawer'),
+    pdfClose: $('#pdfClose'),
+    pdfCancel: $('#pdfCancel'),
+    pdfStatus: $('#pdfStatus'),
+    pdfBar: $('#pdfBar'),
+    contactHotspots: $('#contactHotspots')
   };
 
   if (!TOTAL) {
@@ -143,6 +170,18 @@
   let drawerOpen = false;
   let drawerCloseTimer = 0;
   let tocView = 'directory';
+  let searchOpen = false;
+  let shareOpen = false;
+  let helpOpen = false;
+  let pdfOpen = false;
+  let pdfJobToken = 0;
+  let modalLastFocus = null;
+  let searchItems = [];
+  let searchActive = -1;
+  const PUBLIC_URL = 'https://echoo395.github.io/echoos/';
+  const SHARE_QR = 'assets/brand/share-qr.png';
+  const BACK_PAGE = Math.max(0, TOTAL - 1);
+  const CONTACT_SOURCE = { width: 1440, height: 1954 };
 
   const flipImageFront = new Image();
   const flipImageBack = new Image();
@@ -442,9 +481,11 @@
     if (index == null) {
       leaf.classList.add('is-empty');
       leaf.style.backgroundImage = 'none';
+      delete leaf.dataset.pageIndex;
       setImageElement(image, null);
     } else {
       leaf.classList.remove('is-empty');
+      leaf.dataset.pageIndex = String(index);
       leaf.style.backgroundImage = `url("${PAGES[index].thumb}")`;
       setImageElement(image, index);
     }
@@ -1250,6 +1291,49 @@
     }
 
     updateDirectoryCurrent();
+    updateContactHotspots();
+  }
+
+  function updateContactHotspots() {
+    const layer = dom.contactHotspots;
+    if (!layer) return;
+
+    const leaf = [dom.leafLeft, dom.leafRight, dom.leafSingle].find(
+      (item) => item && item.dataset.pageIndex === String(BACK_PAGE) && !item.classList.contains('is-empty')
+    );
+
+    if (!ready || flip || !leaf) {
+      layer.hidden = true;
+      return;
+    }
+
+    const spreadRect = dom.spread.getBoundingClientRect();
+    const leafRect = leaf.getBoundingClientRect();
+    layer.hidden = false;
+    layer.style.left = `${leafRect.left - spreadRect.left}px`;
+    layer.style.top = `${leafRect.top - spreadRect.top}px`;
+    layer.style.width = `${leafRect.width}px`;
+    layer.style.height = `${leafRect.height}px`;
+
+    const scale = Math.max(
+      leafRect.width / CONTACT_SOURCE.width,
+      leafRect.height / CONTACT_SOURCE.height
+    );
+    const offsetX = (leafRect.width - CONTACT_SOURCE.width * scale) / 2;
+    const offsetY = (leafRect.height - CONTACT_SOURCE.height * scale) / 2;
+
+    $$('.contact-hotspot', layer).forEach((spot) => {
+      const x = Number(spot.dataset.x);
+      const y = Number(spot.dataset.y);
+      const w = Number(spot.dataset.w);
+      const h = Number(spot.dataset.h);
+      const width = Math.max(44, w * scale);
+      const height = Math.max(14, h * scale);
+      spot.style.left = `${offsetX + x * scale}px`;
+      spot.style.top = `${offsetY + y * scale}px`;
+      spot.style.width = `${width}px`;
+      spot.style.height = `${height}px`;
+    });
   }
 
   function printedPageForIndex(index) {
@@ -1486,9 +1570,9 @@
 
   function showHint() {
     if (!ready) return;
-    dom.hintText.textContent = IS_COARSE
-      ? '左右滑动翻页 · 轻点两下放大'
-      : '拖动页角翻页 · 双击页面放大';
+    dom.hintText.textContent = isMobileUX()
+      ? '左右拖动翻页 · 双击放大 · 点此看提示'
+      : '拖动页角翻页 · 双击放大 · 点此看提示';
     dom.hint.classList.add('is-visible');
     window.clearTimeout(hintTimer);
     hintTimer = window.setTimeout(hideHint, 6200);
@@ -2388,6 +2472,471 @@
     showChapterGhost(seriesName);
   }
 
+  /* ---------- Search / Share / Help / PDF ---------- */
+
+  function isMobileUX() {
+    return IS_COARSE || window.matchMedia('(max-width: 700px)').matches;
+  }
+
+  function openModal(modal, focusTarget) {
+    if (!modal) return;
+    modalLastFocus = document.activeElement;
+    modal.classList.add('is-open');
+    modal.setAttribute('aria-hidden', 'false');
+    if (focusTarget) {
+      window.setTimeout(() => {
+        try { focusTarget.focus({ preventScroll: true }); } catch (error) { /* ignore */ }
+      }, 60);
+    }
+  }
+
+  function closeModal(modal, restoreFocus = true) {
+    if (!modal) return;
+    modal.classList.remove('is-open');
+    modal.setAttribute('aria-hidden', 'true');
+    if (restoreFocus && modalLastFocus && typeof modalLastFocus.focus === 'function') {
+      try { modalLastFocus.focus({ preventScroll: true }); } catch (error) { /* ignore */ }
+    }
+  }
+
+  function normalizeSearch(value) {
+    return String(value || '')
+      .toLowerCase()
+      .normalize('NFKC')
+      .replace(/[\s\-—–_/（）()·,，.。:：]+/g, '');
+  }
+
+  function buildSearchIndex() {
+    const items = [];
+
+    TOC.forEach((item) => {
+      const pageIndex = clamp(Number(item.start) + 2, 0, TOTAL - 1);
+      const sub = item.start === item.end
+        ? `印刷页 ${item.start}`
+        : `印刷页 ${item.start}–${item.end}`;
+      items.push({
+        kind: '系列',
+        title: item.name,
+        sub,
+        pageIndex,
+        code: normalizeSearch(String(item.name).split(/[（(]/)[0]),
+        hay: normalizeSearch(`${item.name} ${item.start} ${item.end} ${pageLabel(pageIndex)}`)
+      });
+    });
+
+    PAGES.forEach((page, index) => {
+      const hasPrinted = Number.isFinite(Number(page.label));
+      if (!hasPrinted) {
+        items.push({
+          kind: '页面',
+          title: page.title,
+          sub: `第 ${page.n} 页`,
+          pageIndex: index,
+          hay: normalizeSearch(`${page.title} ${page.label} ${page.n}`)
+        });
+        return;
+      }
+
+      items.push({
+        kind: '页面',
+        title: `产品 ${page.label}`,
+        sub: tocSeriesForPage(index) || page.title,
+        pageIndex: index,
+        hay: normalizeSearch(`${page.label} ${page.title} ${tocSeriesForPage(index)} ${page.n}`)
+      });
+    });
+
+    return items;
+  }
+
+  function getSearchResults(query) {
+    const q = normalizeSearch(query);
+    if (!q) return [];
+
+    return searchItems
+      .map((item) => {
+        const index = item.hay.indexOf(q);
+        let score = 0;
+        if (index === 0) score = 3;
+        else if (index > 0) score = 2;
+        else if (item.hay.includes(q)) score = 1;
+        if (item.kind === '系列') score += 0.2;
+        if (item.code === q) score += 2;
+        else if (item.code && item.code.startsWith(q)) score += 0.8;
+        return { item, score };
+      })
+      .filter((entry) => entry.score > 0)
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 12)
+      .map((entry) => entry.item);
+  }
+
+  function renderSearchResults(query) {
+    const results = getSearchResults(query);
+    dom.searchResults.replaceChildren();
+    searchActive = results.length ? 0 : -1;
+    dom.searchEmpty.hidden = results.length > 0 || !normalizeSearch(query);
+
+    results.forEach((item, index) => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = `search-result${index === searchActive ? ' is-active' : ''}`;
+      button.dataset.index = String(index);
+      button.setAttribute('role', 'option');
+      button.setAttribute('aria-selected', index === searchActive ? 'true' : 'false');
+
+      const type = document.createElement('span');
+      type.className = 'search-result__type';
+      type.textContent = item.kind;
+
+      const text = document.createElement('span');
+      const title = document.createElement('span');
+      title.className = 'search-result__title';
+      title.textContent = item.title;
+      const sub = document.createElement('span');
+      sub.className = 'search-result__sub';
+      sub.textContent = item.sub;
+      text.append(title, sub);
+
+      const page = document.createElement('span');
+      page.className = 'search-result__page';
+      page.textContent = `第 ${PAGES[item.pageIndex] ? PAGES[item.pageIndex].n : item.pageIndex + 1} 页`;
+
+      button.append(type, text, page);
+      dom.searchResults.appendChild(button);
+    });
+
+    dom.searchResults.dataset.results = JSON.stringify(results.map((item) => ({
+      title: item.title,
+      pageIndex: item.pageIndex
+    })));
+    dom.searchResults.scrollTop = 0;
+  }
+
+  function setSearchActive(index) {
+    const buttons = $$('.search-result', dom.searchResults);
+    if (!buttons.length) return;
+    searchActive = (index + buttons.length) % buttons.length;
+    buttons.forEach((button, buttonIndex) => {
+      const active = buttonIndex === searchActive;
+      button.classList.toggle('is-active', active);
+      button.setAttribute('aria-selected', active ? 'true' : 'false');
+      if (active) button.scrollIntoView({ block: 'nearest' });
+    });
+  }
+
+  function chooseSearchResult(index) {
+    const buttons = $$('.search-result', dom.searchResults);
+    const button = buttons[index];
+    if (!button) return;
+    const data = JSON.parse(dom.searchResults.dataset.results || '[]');
+    const item = data[Number(button.dataset.index)];
+    if (!item) return;
+
+    const target = targetViewForPage(item.pageIndex);
+    closeSearch(false);
+    if (!isSameView(target, currentView())) {
+      jumpToView(target);
+    }
+  }
+
+  function openSearch() {
+    if (!ready || searchOpen) return;
+    if (drawerOpen) closeDrawer(false);
+    searchOpen = true;
+    if (!searchItems.length) searchItems = buildSearchIndex();
+    dom.searchInput.value = '';
+    renderSearchResults('');
+    openModal(dom.searchModal, dom.searchInput);
+  }
+
+  function closeSearch(restoreFocus = true) {
+    if (!searchOpen) return;
+    searchOpen = false;
+    closeModal(dom.searchModal, restoreFocus);
+  }
+
+  function openShare() {
+    if (!ready || shareOpen) return;
+    if (drawerOpen) closeDrawer(false);
+    shareOpen = true;
+    dom.shareUrl.value = PUBLIC_URL;
+    dom.nativeShare.hidden = typeof navigator.share !== 'function';
+    openModal(dom.shareModal, dom.copyShare);
+  }
+
+  function closeShare(restoreFocus = true) {
+    if (!shareOpen) return;
+    shareOpen = false;
+    closeModal(dom.shareModal, restoreFocus);
+  }
+
+  async function copyText(text) {
+    try {
+      await navigator.clipboard.writeText(text);
+      return true;
+    } catch (error) {
+      const helper = document.createElement('textarea');
+      helper.value = text;
+      helper.style.position = 'fixed';
+      helper.style.opacity = '0';
+      document.body.appendChild(helper);
+      helper.select();
+      let ok = false;
+      try { ok = document.execCommand('copy'); } catch (copyError) { ok = false; }
+      helper.remove();
+      return ok;
+    }
+  }
+
+  async function copyShareLink() {
+    const ok = await copyText(PUBLIC_URL);
+    showToast(ok ? '图册网址已复制' : '复制失败，请手动选择网址');
+  }
+
+  function buildHelpList() {
+    const mobile = isMobileUX();
+    dom.helpMode.textContent = mobile ? '手机版操作' : '电脑版操作';
+    const rows = mobile
+      ? [
+          ['左右拖动', '上一页 / 下一页'],
+          ['双击页面', '放大当前页'],
+          ['双指缩放', '放大后拖动查看'],
+          ['底部页码 / 目录', '快速跳转系列或页面'],
+          ['右上角放大镜', '搜索型号 / 系列'],
+          ['右上角分享', '分享整本图册'],
+          ['右上角 ?', '随时打开本提示']
+        ]
+      : [
+          ['← / → / 空格', '上一页 / 下一页'],
+          ['Home / End', '回到封面 / 封底'],
+          ['G', '打开目录'],
+          ['/ 或 Ctrl+K', '搜索型号 / 系列'],
+          ['Z', '查看当前页大图'],
+          ['F', '进入 / 退出全屏'],
+          ['Esc', '关闭弹窗 / 目录'],
+          ['鼠标拖动页角', '手动翻页；双击页面放大']
+        ];
+
+    dom.helpList.replaceChildren();
+    rows.forEach(([key, text]) => {
+      const row = document.createElement('div');
+      row.className = 'help-row';
+      const keyNode = document.createElement('span');
+      keyNode.className = 'help-key';
+      keyNode.textContent = key;
+      const textNode = document.createElement('span');
+      textNode.textContent = text;
+      row.append(keyNode, textNode);
+      dom.helpList.appendChild(row);
+    });
+  }
+
+  function openHelp() {
+    if (!ready || helpOpen) return;
+    if (drawerOpen) closeDrawer(false);
+    helpOpen = true;
+    buildHelpList();
+    openModal(dom.helpModal, dom.helpClose);
+  }
+
+  function closeHelp(restoreFocus = true) {
+    if (!helpOpen) return;
+    helpOpen = false;
+    closeModal(dom.helpModal, restoreFocus);
+  }
+
+  function createPdfWatermark(width, height) {
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return null;
+
+    ctx.clearRect(0, 0, width, height);
+    ctx.save();
+    ctx.translate(width / 2, height / 2);
+    ctx.rotate(-Math.PI / 6);
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.globalAlpha = .085;
+    ctx.fillStyle = '#0b4f93';
+    ctx.font = `600 ${Math.round(width * .052)}px "Microsoft YaHei", "PingFang SC", sans-serif`;
+    ctx.fillText('千寻电气 · 产品图册', 0, -height * .07);
+    ctx.globalAlpha = .065;
+    ctx.fillStyle = '#1b6ed4';
+    ctx.font = `500 ${Math.round(width * .021)}px "Segoe UI", Arial, sans-serif`;
+    ctx.fillText('QIANXUN ELECTRICAL · PRODUCT CATALOGUE', 0, height * .075);
+    ctx.restore();
+    return canvas.toDataURL('image/png');
+  }
+
+  function loadPdfPageImage(src) {
+    return new Promise((resolve, reject) => {
+      const image = new Image();
+      image.decoding = 'async';
+      image.onload = () => resolve(image);
+      image.onerror = () => reject(new Error(`无法加载 ${src}`));
+      image.src = src;
+    });
+  }
+
+  function updatePdfProgress(index, total, status) {
+    dom.pdfStatus.textContent = status;
+    dom.pdfBar.style.width = `${Math.round((index / total) * 100)}%`;
+  }
+
+  async function generatePdf(token) {
+    const JsPDF = window.jspdf && window.jspdf.jsPDF;
+    if (!JsPDF) {
+      dom.pdfStatus.textContent = 'PDF 组件加载失败，请刷新页面后重试。';
+      return;
+    }
+
+    let doc = null;
+    let watermark = null;
+
+    try {
+      for (let index = 0; index < TOTAL; index++) {
+        if (!pdfOpen || token !== pdfJobToken) return;
+
+        updatePdfProgress(index, TOTAL, `正在处理第 ${index + 1} / ${TOTAL} 页…`);
+        const image = await loadPdfPageImage(PAGES[index].page);
+        if (!pdfOpen || token !== pdfJobToken) return;
+
+        const width = image.naturalWidth;
+        const height = image.naturalHeight;
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d', { alpha: false });
+        if (!ctx) throw new Error('无法创建画布');
+
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, width, height);
+        ctx.drawImage(image, 0, 0, width, height);
+        const jpeg = canvas.toDataURL('image/jpeg', .84);
+
+        if (!doc) {
+          const orientation = width > height ? 'landscape' : 'portrait';
+          doc = new JsPDF({
+            orientation,
+            unit: 'px',
+            format: [width, height],
+            compress: true,
+            hotfixes: ['px_scaling']
+          });
+          watermark = createPdfWatermark(width, height);
+        } else {
+          doc.addPage([width, height], width > height ? 'landscape' : 'portrait');
+        }
+
+        doc.addImage(jpeg, 'JPEG', 0, 0, width, height, undefined, 'FAST');
+        if (watermark) {
+          doc.addImage(watermark, 'PNG', 0, 0, width, height, undefined, 'FAST');
+        }
+
+        if (index % 2 === 1) {
+          await new Promise((resolve) => window.setTimeout(resolve, 0));
+        }
+      }
+
+      if (!pdfOpen || token !== pdfJobToken) return;
+      updatePdfProgress(TOTAL, TOTAL, '正在保存 PDF…');
+      await new Promise((resolve) => window.setTimeout(resolve, 30));
+      doc.save('千寻电气产品图册.pdf');
+      dom.pdfStatus.textContent = `已生成 ${TOTAL} 页 PDF，下载已开始。`;
+      showToast('PDF 已生成，正在下载');
+    } catch (error) {
+      dom.pdfStatus.textContent = `生成失败：${error.message || '请刷新页面重试。'}`;
+    }
+  }
+
+  function openPdfExport() {
+    if (!ready || pdfOpen) return;
+    if (drawerOpen) closeDrawer(false);
+    pdfOpen = true;
+    const token = ++pdfJobToken;
+    dom.pdfStatus.textContent = '准备生成 PDF…';
+    dom.pdfBar.style.width = '0%';
+    openModal(dom.pdfModal, dom.pdfClose);
+    generatePdf(token);
+  }
+
+  function closePdfExport(restoreFocus = true) {
+    if (!pdfOpen) return;
+    pdfOpen = false;
+    pdfJobToken++;
+    closeModal(dom.pdfModal, restoreFocus);
+  }
+
+  function bindFeatureEvents() {
+    dom.searchBtn.addEventListener('click', openSearch);
+    dom.searchClose.addEventListener('click', () => closeSearch());
+    dom.searchModal.addEventListener('click', (event) => {
+      if (event.target === dom.searchModal) closeSearch();
+    });
+    dom.searchInput.addEventListener('input', () => renderSearchResults(dom.searchInput.value));
+    dom.searchInput.addEventListener('keydown', (event) => {
+      if (event.key === 'ArrowDown') {
+        event.preventDefault();
+        setSearchActive(searchActive + 1);
+      } else if (event.key === 'ArrowUp') {
+        event.preventDefault();
+        setSearchActive(searchActive - 1);
+      } else if (event.key === 'Enter') {
+        event.preventDefault();
+        chooseSearchResult(searchActive);
+      } else if (event.key === 'Escape') {
+        event.preventDefault();
+        closeSearch();
+      }
+    });
+    dom.searchResults.addEventListener('click', (event) => {
+      const result = event.target.closest('.search-result');
+      if (result) chooseSearchResult(Number(result.dataset.index));
+    });
+    dom.searchModal.addEventListener('keydown', (event) => trapFocus(event, dom.searchModal));
+
+    dom.shareBtn.addEventListener('click', openShare);
+    dom.shareClose.addEventListener('click', () => closeShare());
+    dom.shareModal.addEventListener('click', (event) => {
+      if (event.target === dom.shareModal) closeShare();
+    });
+    dom.copyShare.addEventListener('click', copyShareLink);
+    dom.nativeShare.addEventListener('click', async () => {
+      if (typeof navigator.share !== 'function') return;
+      try {
+        await navigator.share({
+          title: '千寻电气产品图册',
+          text: '千寻电气产品图册',
+          url: PUBLIC_URL
+        });
+      } catch (error) {
+        /* user cancelled */
+      }
+    });
+    dom.shareModal.addEventListener('keydown', (event) => trapFocus(event, dom.shareModal));
+
+    dom.helpBtn.addEventListener('click', openHelp);
+    dom.helpClose.addEventListener('click', () => closeHelp());
+    dom.hint.addEventListener('click', openHelp);
+    dom.helpModal.addEventListener('click', (event) => {
+      if (event.target === dom.helpModal) closeHelp();
+    });
+    dom.helpModal.addEventListener('keydown', (event) => trapFocus(event, dom.helpModal));
+
+    dom.pdfBtn.addEventListener('click', openPdfExport);
+    dom.pdfBtnDrawer.addEventListener('click', openPdfExport);
+    dom.pdfClose.addEventListener('click', () => closePdfExport());
+    dom.pdfCancel.addEventListener('click', () => closePdfExport());
+    dom.pdfModal.addEventListener('click', (event) => {
+      if (event.target === dom.pdfModal) closePdfExport();
+    });
+    dom.pdfModal.addEventListener('keydown', (event) => trapFocus(event, dom.pdfModal));
+  }
+
+
   function bindEvents() {
     dom.prevBtn.addEventListener('click', () => navigate(-1));
     dom.prevPage.addEventListener('click', () => navigate(-1));
@@ -2482,6 +3031,38 @@
   function onKeyDown(event) {
     if (event.defaultPrevented) return;
 
+    if (searchOpen) {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        closeSearch();
+      }
+      return;
+    }
+
+    if (shareOpen) {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        closeShare();
+      }
+      return;
+    }
+
+    if (helpOpen) {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        closeHelp();
+      }
+      return;
+    }
+
+    if (pdfOpen) {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        closePdfExport();
+      }
+      return;
+    }
+
     if (zoomState.open) {
       if (event.key === 'Escape') {
         event.preventDefault();
@@ -2518,7 +3099,24 @@
     const tag = target && target.tagName ? target.tagName.toLowerCase() : '';
     if (tag === 'input' || tag === 'textarea' || tag === 'select') return;
     if ((event.key === ' ' || event.key === 'Enter') && (tag === 'button' || tag === 'a')) return;
+
+    if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k') {
+      event.preventDefault();
+      openSearch();
+      return;
+    }
     if (event.metaKey || event.ctrlKey || event.altKey) return;
+
+    if (event.key === '/') {
+      event.preventDefault();
+      openSearch();
+      return;
+    }
+    if (event.key === '?') {
+      event.preventDefault();
+      openHelp();
+      return;
+    }
 
     switch (event.key) {
       case 'ArrowRight':
@@ -2607,6 +3205,8 @@
     buildThumbs();
     updateThumbCurrent();
     bindEvents();
+    bindFeatureEvents();
+    searchItems = buildSearchIndex();
     initStarfield();
     initButtonEffects();
     initPageLightEffects();
