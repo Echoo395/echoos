@@ -179,6 +179,7 @@
   let searchItems = [];
   let searchActive = -1;
   const PUBLIC_URL = 'https://echoo395.github.io/echoos/';
+  const PDF_CDN_URL = 'https://cdn.jsdelivr.net/gh/Echoo395/echoos@main/assets/qianxun-catalog.pdf?v=20261110c';
   const SHARE_QR = 'assets/brand/share-qr.png';
   const BACK_PAGE = Math.max(0, TOTAL - 1);
   const CONTACT_SOURCE = { width: 1440, height: 1954 };
@@ -2855,8 +2856,9 @@
   function openPdfExport() {
     if (!ready) return;
     if (drawerOpen) closeDrawer(false);
+    const onGithubPages = location.hostname === 'echoo395.github.io';
     const link = document.createElement('a');
-    link.href = 'assets/qianxun-catalog.pdf';
+    link.href = onGithubPages ? PDF_CDN_URL : 'assets/qianxun-catalog.pdf';
     link.download = '千寻电气产品图册.pdf';
     document.body.appendChild(link);
     link.click();
