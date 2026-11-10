@@ -117,11 +117,10 @@
     pdfCancel: $('#pdfCancel'),
     pdfStatus: $('#pdfStatus'),
     pdfBar: $('#pdfBar'),
-    contactHotspots: $('#contactHotspots'),
-    contactHover: $('#contactHover'),
-    contactHoverLabel: $('#contactHoverLabel'),
-    contactHoverValue: $('#contactHoverValue'),
-    contactHoverCopy: $('#contactHoverCopy'),
+    contactHighlight: $('#contactHighlight'),
+    contactHighlightGlow: $('#contactHighlightGlow'),
+    contactHighlightHit: $('#contactHighlightHit'),
+    contactHighlightBadge: $('#contactHighlightBadge'),
     contactModal: $('#contactModal'),
     contactClose: $('#contactClose'),
     contactList: $('#contactList')
@@ -183,8 +182,6 @@
   let pdfOpen = false;
   let pdfJobToken = 0;
   let contactOpen = false;
-  let contactHoverTimer = 0;
-  let contactHoverKey = '';
   let modalLastFocus = null;
   let searchItems = [];
   let searchActive = -1;
@@ -212,6 +209,7 @@
       copy: 'https://cn.qianxunele.com'
     }
   };
+  const CONTACT_FRAME = { x: 24, y: 1522, w: 746, h: 402 };
   const BACK_PAGE = Math.max(0, TOTAL - 1);
   const CONTACT_SOURCE = { width: 1440, height: 1954 };
 
@@ -1327,27 +1325,26 @@
   }
 
   function updateContactHotspots() {
-    const layer = dom.contactHotspots;
-    if (!layer) return;
+    const elements = [
+      dom.contactHighlight,
+      dom.contactHighlightGlow,
+      dom.contactHighlightHit,
+      dom.contactHighlightBadge
+    ];
+    if (elements.some((element) => !element)) return;
 
+    const hide = () => elements.forEach((element) => { element.hidden = true; });
     const leaf = [dom.leafLeft, dom.leafRight, dom.leafSingle].find(
       (item) => item && item.dataset.pageIndex === String(BACK_PAGE) && !item.classList.contains('is-empty')
     );
 
     if (!ready || flip || !leaf) {
-      layer.hidden = true;
-      hideContactHover(0);
+      hide();
       return;
     }
 
     const spreadRect = dom.spread.getBoundingClientRect();
     const leafRect = leaf.getBoundingClientRect();
-    layer.hidden = false;
-    layer.style.left = `${leafRect.left - spreadRect.left}px`;
-    layer.style.top = `${leafRect.top - spreadRect.top}px`;
-    layer.style.width = `${leafRect.width}px`;
-    layer.style.height = `${leafRect.height}px`;
-
     const scale = Math.max(
       leafRect.width / CONTACT_SOURCE.width,
       leafRect.height / CONTACT_SOURCE.height
@@ -1355,18 +1352,33 @@
     const offsetX = (leafRect.width - CONTACT_SOURCE.width * scale) / 2;
     const offsetY = (leafRect.height - CONTACT_SOURCE.height * scale) / 2;
 
-    $$('.contact-hotspot', layer).forEach((spot) => {
-      const x = Number(spot.dataset.x);
-      const y = Number(spot.dataset.y);
-      const w = Number(spot.dataset.w);
-      const h = Number(spot.dataset.h);
-      const width = Math.max(44, w * scale);
-      const height = Math.max(14, h * scale);
-      spot.style.left = `${offsetX + x * scale}px`;
-      spot.style.top = `${offsetY + y * scale}px`;
-      spot.style.width = `${width}px`;
-      spot.style.height = `${height}px`;
-    });
+    const left = leafRect.left - spreadRect.left + offsetX + CONTACT_FRAME.x * scale;
+    const top = leafRect.top - spreadRect.top + offsetY + CONTACT_FRAME.y * scale;
+    const width = CONTACT_FRAME.w * scale;
+    const height = CONTACT_FRAME.h * scale;
+
+    dom.contactHighlight.hidden = false;
+    dom.contactHighlightGlow.hidden = false;
+    dom.contactHighlightHit.hidden = false;
+    for (const element of [dom.contactHighlight, dom.contactHighlightGlow, dom.contactHighlightHit]) {
+      element.style.left = `${left}px`;
+      element.style.top = `${top}px`;
+      element.style.width = `${width}px`;
+      element.style.height = `${height}px`;
+    }
+
+    const badge = dom.contactHighlightBadge;
+    badge.hidden = false;
+    const badgeWidth = badge.offsetWidth || 120;
+    const badgeHeight = badge.offsetHeight || 24;
+    const badgeLeft = clamp(left + width - badgeWidth, 0, window.innerWidth - badgeWidth);
+    let badgeTop = top - badgeHeight - 8;
+    if (badgeTop < 0) badgeTop = top + 8;
+    badge.style.left = `${badgeLeft}px`;
+    badge.style.top = `${badgeTop}px`;
+
+    dom.contactHighlightHit.style.top = `${top - badgeHeight - 8}px`;
+    dom.contactHighlightHit.style.height = `${height + badgeHeight + 8}px`;
   }
 
   function printedPageForIndex(index) {
@@ -2741,62 +2753,10 @@
     }
   }
 
-  function hideContactHover(delay = 90) {
-    window.clearTimeout(contactHoverTimer);
-    contactHoverTimer = window.setTimeout(() => {
-      contactHoverKey = '';
-      if (!dom.contactHover) return;
-      dom.contactHover.classList.remove('is-visible');
-      dom.contactHover.setAttribute('aria-hidden', 'true');
-    }, delay);
-  }
-
-  function showContactHover(button) {
-    if (!ready || contactOpen || isMobileUX() || !button) return;
-    const key = button.dataset.contact;
-    const info = CONTACT_INFO[key];
-    if (!info) return;
-
-    window.clearTimeout(contactHoverTimer);
-    contactHoverKey = key;
-    dom.contactHoverLabel.textContent = info.label;
-    dom.contactHoverValue.textContent = info.value;
-    dom.contactHover.classList.add('is-visible');
-    dom.contactHover.setAttribute('aria-hidden', 'false');
-
-    window.requestAnimationFrame(() => {
-      if (!dom.contactHover.classList.contains('is-visible')) return;
-      const rect = button.getBoundingClientRect();
-      const card = dom.contactHover.getBoundingClientRect();
-      const book = dom.spread.getBoundingClientRect();
-      let left;
-      if (book.left > card.width + 28) {
-        left = book.left - card.width - 14;
-      } else {
-        left = clamp(
-          rect.left + rect.width / 2 - card.width / 2,
-          8,
-          window.innerWidth - card.width - 8
-        );
-      }
-      const top = clamp(
-        rect.top + rect.height / 2 - card.height / 2,
-        8,
-        window.innerHeight - card.height - 8
-      );
-      dom.contactHover.style.left = `${left}px`;
-      dom.contactHover.style.top = `${top}px`;
-    });
-  }
-
-  function openContactModal(key) {
+  function openContactModal() {
     if (!ready || contactOpen) return;
     if (drawerOpen) closeDrawer(false);
-    hideContactHover(0);
     contactOpen = true;
-    $$('.contact-row', dom.contactList).forEach((row) => {
-      row.classList.toggle('is-current', row.dataset.contactRow === key);
-    });
     openModal(dom.contactModal, dom.contactClose);
   }
 
@@ -2807,23 +2767,7 @@
   }
 
   function bindContactEvents() {
-    $$('.contact-hotspot').forEach((button) => {
-      button.addEventListener('click', () => openContactModal(button.dataset.contact));
-      button.addEventListener('pointerenter', () => showContactHover(button));
-      button.addEventListener('pointerleave', () => hideContactHover(180));
-      button.addEventListener('focus', () => showContactHover(button));
-      button.addEventListener('blur', () => hideContactHover(180));
-    });
-
-    dom.contactHover.addEventListener('pointerenter', () => {
-      window.clearTimeout(contactHoverTimer);
-    });
-    dom.contactHover.addEventListener('pointerleave', () => hideContactHover(120));
-    dom.contactHoverCopy.addEventListener('click', (event) => {
-      event.stopPropagation();
-      if (contactHoverKey) copyContactValue(contactHoverKey, dom.contactHoverCopy);
-    });
-
+    dom.contactHighlightHit.addEventListener('click', openContactModal);
     dom.contactClose.addEventListener('click', () => closeContactModal());
     dom.contactModal.addEventListener('click', (event) => {
       if (event.target === dom.contactModal) closeContactModal();

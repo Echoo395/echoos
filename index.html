@@ -93,12 +93,10 @@
               <span class="blank-paper"></span>
             </div>
 
-            <div class="contact-hotspots" id="contactHotspots" hidden>
-              <button class="contact-hotspot" id="contactAddress" type="button" aria-label="查看地址" data-contact="address" data-x="55" data-y="1680" data-w="620" data-h="45"></button>
-              <button class="contact-hotspot" id="contactPhone" type="button" aria-label="查看电话" data-contact="phone" data-x="50" data-y="1738" data-w="230" data-h="42"></button>
-              <button class="contact-hotspot" id="contactEmail" type="button" aria-label="查看邮箱" data-contact="email" data-x="45" data-y="1795" data-w="255" data-h="40"></button>
-              <button class="contact-hotspot" id="contactWebsite" type="button" aria-label="查看网址" data-contact="website" data-x="48" data-y="1850" data-w="365" data-h="42"></button>
-            </div>
+            <div class="contact-highlight-glow" id="contactHighlightGlow" hidden aria-hidden="true"></div>
+            <div class="contact-highlight" id="contactHighlight" hidden aria-hidden="true"></div>
+            <button class="contact-highlight-hit" id="contactHighlightHit" type="button" aria-label="打开联系方式，可复制地址、电话、邮箱、网址" hidden></button>
+            <span class="contact-highlight-badge" id="contactHighlightBadge" hidden aria-hidden="true">点击查看 · 可复制</span>
 
             <div class="gutter" id="gutter" aria-hidden="true"></div>
             <div class="page-shade page-shade--left" id="shadeLeft" aria-hidden="true"></div>
@@ -323,12 +321,6 @@
       <p class="pdf-note">共 70 页，按图册顺序生成。每页带很浅的“千寻电气 · 产品图册”水印，不影响阅读。生成期间请保持页面打开。</p>
       <button class="pdf-cancel" id="pdfCancel" type="button">取消</button>
     </div>
-  </div>
-
-  <div class="contact-hover" id="contactHover" role="tooltip" aria-hidden="true">
-    <span class="contact-hover__label" id="contactHoverLabel"></span>
-    <span class="contact-hover__value" id="contactHoverValue"></span>
-    <button class="contact-hover__copy" id="contactHoverCopy" type="button">复制</button>
   </div>
 
   <div class="contact-modal" id="contactModal" role="dialog" aria-modal="true" aria-labelledby="contactTitle" aria-hidden="true">

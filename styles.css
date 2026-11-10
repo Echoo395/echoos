@@ -2690,94 +2690,99 @@ body.is-intro .ambient-vignette { opacity: .55; }
   color: var(--muted);
 }
 
-/* Contact hotspots on the back-cover page */
-.contact-hotspots {
+/* Contact panel highlight on the back-cover page */
+.contact-highlight-glow {
   position: absolute;
   z-index: 6;
+  border-radius: 16px;
+  box-shadow:
+    0 0 28px rgba(74, 168, 255, .34),
+    0 0 70px rgba(74, 168, 255, .12),
+    inset 0 0 24px rgba(74, 168, 255, .07);
   pointer-events: none;
 }
 
-.contact-hotspots[hidden] { display: none; }
-
-.contact-hotspot {
+.contact-highlight {
   position: absolute;
-  display: block;
+  z-index: 7;
+  padding: 2px;
+  border-radius: 14px;
+  overflow: hidden;
+  background: rgba(74, 168, 255, .38);
+  pointer-events: none;
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask-composite: exclude;
+}
+
+.contact-highlight::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 220%;
+  aspect-ratio: 1;
+  background: conic-gradient(
+    from 0deg,
+    transparent 0 70%,
+    rgba(74, 168, 255, .08) 75%,
+    #4aa8ff 80%,
+    #ffffff 82%,
+    #8dd0ff 84%,
+    transparent 89%
+  );
+  transform: translate(-50%, -50%) rotate(0deg);
+  animation: contact-border-flow 4.6s linear infinite;
+}
+
+@keyframes contact-border-flow {
+  to { transform: translate(-50%, -50%) rotate(1turn); }
+}
+
+.contact-highlight-hit {
+  position: absolute;
+  z-index: 8;
   padding: 0;
   border: 0;
-  border-radius: 6px;
+  border-radius: 16px;
   background: transparent;
-  color: inherit;
-  font: inherit;
-  text-decoration: none;
   cursor: pointer;
   pointer-events: auto;
   -webkit-tap-highlight-color: transparent;
 }
 
-.app.is-flipping .contact-hotspots,
-.app.is-dragging .contact-hotspots {
-  display: none !important;
-}
-
-.contact-hover {
-  position: fixed;
-  z-index: 190;
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-  width: 260px;
-  padding: 10px 11px 9px;
-  border: 1px solid rgba(94, 171, 255, .3);
-  border-radius: 10px;
-  background:
-    radial-gradient(ellipse 90% 100% at 80% 0%, rgba(42, 109, 186, .18), transparent 75%),
-    linear-gradient(165deg, #0b1b2d, #07121f);
-  box-shadow: 0 16px 38px rgba(0, 0, 0, .45);
-  opacity: 0;
-  visibility: hidden;
-  pointer-events: none;
-  transform: translateY(4px);
-  transition: opacity .16s ease, visibility .16s, transform .16s ease;
-}
-
-.contact-hover.is-visible {
-  opacity: 1;
-  visibility: visible;
-  pointer-events: auto;
-  transform: translateY(0);
-}
-
-.contact-hover__label {
-  color: var(--accent-bright);
-  font-size: 9px;
-  letter-spacing: .12em;
-}
-
-.contact-hover__value {
-  overflow: hidden;
-  color: var(--ink-soft);
-  font-size: 11px;
-  line-height: 1.55;
-  text-overflow: ellipsis;
+.contact-highlight-badge {
+  position: absolute;
+  z-index: 9;
+  padding: 5px 9px;
+  border: 1px solid rgba(141, 208, 255, .5);
+  border-radius: 6px;
+  background: linear-gradient(135deg, #0c477a, #081b2e);
+  box-shadow: 0 0 22px rgba(74, 168, 255, .38);
+  color: #d4efff;
+  font-size: 10px;
+  letter-spacing: .08em;
   white-space: nowrap;
+  pointer-events: none;
 }
 
-.contact-hover__copy {
-  align-self: flex-start;
-  margin-top: 2px;
-  padding: 3px 9px;
-  border: 1px solid rgba(74, 168, 255, .28);
-  border-radius: 5px;
-  background: rgba(74, 168, 255, .1);
-  color: var(--accent-bright);
-  font-size: 9.5px;
-  cursor: pointer;
+.contact-highlight[hidden],
+.contact-highlight-glow[hidden],
+.contact-highlight-hit[hidden],
+.contact-highlight-badge[hidden] {
+  display: none;
 }
 
-.contact-hover__copy:hover {
-  border-color: rgba(74, 168, 255, .5);
-  background: rgba(74, 168, 255, .2);
-  color: #fff;
+.app.is-flipping .contact-highlight,
+.app.is-flipping .contact-highlight-glow,
+.app.is-flipping .contact-highlight-hit,
+.app.is-flipping .contact-highlight-badge,
+.app.is-dragging .contact-highlight,
+.app.is-dragging .contact-highlight-glow,
+.app.is-dragging .contact-highlight-hit,
+.app.is-dragging .contact-highlight-badge {
+  display: none !important;
 }
 
 .contact-modal {
@@ -2882,9 +2887,9 @@ body.is-intro .ambient-vignette { opacity: .55; }
 }
 
 @media (max-width: 900px) {
-  .contact-hover { display: none; }
   .contact-modal { padding: 12px; }
   .contact-panel { padding: 18px; max-height: 88vh; }
+  .contact-highlight-badge { padding: 4px 7px; font-size: 9px; }
   .contact-row {
     grid-template-columns: 38px minmax(0, 1fr) auto;
     gap: 8px;
