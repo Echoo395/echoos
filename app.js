@@ -179,7 +179,6 @@
   let searchItems = [];
   let searchActive = -1;
   const PUBLIC_URL = 'https://echoo395.github.io/echoos/';
-  const PDF_CDN_URL = 'https://cdn.jsdelivr.net/gh/Echoo395/echoos@8e3515ac2af752bbfa0e35c7c62355a1e93ed6a3/assets/qianxun-catalog.pdf';
   const SHARE_QR = 'assets/brand/share-qr.png';
   const BACK_PAGE = Math.max(0, TOTAL - 1);
   const CONTACT_SOURCE = { width: 1440, height: 1954 };
@@ -2865,31 +2864,11 @@
     }
   }
 
-  async function openPdfExport() {
+  function openPdfExport() {
     if (!ready) return;
     if (drawerOpen) closeDrawer(false);
-
-    const onGithubPages = location.hostname === 'echoo395.github.io';
-    const href = onGithubPages ? PDF_CDN_URL : 'assets/qianxun-catalog.pdf';
-
-    if (!onGithubPages || location.protocol === 'file:') {
-      triggerPdfDownload(href, '千寻电气产品图册.pdf');
-      showToast('PDF 正在下载');
-      return;
-    }
-
-    showToast('正在准备 PDF…', 2600);
-    try {
-      const response = await fetch(href, { mode: 'cors', cache: 'force-cache' });
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      const blob = await response.blob();
-      const objectUrl = URL.createObjectURL(blob);
-      triggerPdfDownload(objectUrl, '千寻电气产品图册.pdf', true);
-      showToast('PDF 下载已开始');
-    } catch (error) {
-      triggerPdfDownload(href, '千寻电气产品图册.pdf');
-      showToast('PDF 正在下载');
-    }
+    triggerPdfDownload('assets/qianxun-catalog.pdf', '千寻电气产品图册.pdf');
+    showToast('PDF 正在下载');
   }
 
   function closePdfExport(restoreFocus = true) {
