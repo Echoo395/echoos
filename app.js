@@ -179,7 +179,7 @@
   let searchItems = [];
   let searchActive = -1;
   const PUBLIC_URL = 'https://echoo395.github.io/echoos/';
-  const PDF_CDN_URL = 'https://cdn.jsdelivr.net/gh/Echoo395/echoos@main/assets/qianxun-catalog.pdf?v=20261110c';
+  const PDF_CDN_URL = 'https://cdn.jsdelivr.net/gh/Echoo395/echoos@8e3515ac2af752bbfa0e35c7c62355a1e93ed6a3/assets/qianxun-catalog.pdf';
   const SHARE_QR = 'assets/brand/share-qr.png';
   const BACK_PAGE = Math.max(0, TOTAL - 1);
   const CONTACT_SOURCE = { width: 1440, height: 1954 };
