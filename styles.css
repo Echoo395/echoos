@@ -1,4 +1,4 @@
-/* =========================================================
+﻿/* =========================================================
    千寻电气 · 产品图册
    Responsive flipbook viewer
    ========================================================= */
@@ -984,14 +984,17 @@ a { color: inherit; }
   max-width: calc(100vw - 32px);
   padding: 5px 11px;
   transform: translate(-50%, 0);
-  border: 1px solid rgba(142, 183, 235, .1);
+  border: 1px solid rgba(120, 190, 255, .36);
   border-radius: 999px;
-  background: rgba(7, 18, 31, .4);
-  color: var(--muted);
-  font-size: 9.5px;
+  background: linear-gradient(180deg, rgba(5, 15, 27, .96), rgba(4, 11, 21, .92));
+  color: #e4f2ff;
+  font-size: 10.5px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, .5);
+  font-weight: 500;
   line-height: 1.25;
   letter-spacing: .05em;
   white-space: nowrap;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, .4), inset 0 1px 0 rgba(255, 255, 255, .08);
   -webkit-backdrop-filter: blur(8px);
   backdrop-filter: blur(8px);
   opacity: 0;
@@ -3110,7 +3113,7 @@ body.is-intro .ambient-vignette { opacity: .55; }
 
 /* WeChat iOS adds its own browser header above the webview. */
 html.is-wechat-ios {
-  --wechat-ui-top: 72px;
+  --wechat-ui-top: 44px;
 }
 
 html.is-wechat-ios .app {
@@ -3123,4 +3126,11 @@ html.is-wechat-ios .drawer {
 
 html.is-wechat-ios .zoom-modal {
   padding-top: var(--wechat-ui-top);
+}
+
+@media (max-width: 900px) {
+  .stage { padding-top: 34px; }
+  .reading-hint { top: 4px; }
+}@media (max-width: 620px) {
+  .reading-hint { font-size: 10.5px; padding: 5px 10px; }
 }

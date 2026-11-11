@@ -2676,11 +2676,8 @@
     const item = data[Number(button.dataset.index)];
     if (!item) return;
 
-    const target = targetViewForPage(item.pageIndex);
     closeSearch(false);
-    if (!isSameView(target, currentView())) {
-      jumpToView(target);
-    }
+    goToPage(item.pageIndex);
   }
 
   function openSearch() {
