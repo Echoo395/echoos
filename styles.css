@@ -1,4 +1,4 @@
-﻿/* =========================================================
+/* =========================================================
    千寻电气 · 产品图册
    Responsive flipbook viewer
    ========================================================= */
@@ -3111,21 +3111,18 @@ body.is-intro .ambient-vignette { opacity: .55; }
   .ambient-glow { animation: none; }
 }
 
-/* WeChat iOS adds its own browser header above the webview. */
-html.is-wechat-ios {
-  --wechat-ui-top: 44px;
-}
-
+/* WeChat iOS: let the app fill the live webview instead of reserving a fixed gap. */
 html.is-wechat-ios .app {
-  padding-top: var(--wechat-ui-top);
+  height: var(--wechat-app-height, 100dvh);
+  padding-top: 0;
 }
 
 html.is-wechat-ios .drawer {
-  top: var(--wechat-ui-top);
+  top: 0;
 }
 
 html.is-wechat-ios .zoom-modal {
-  padding-top: var(--wechat-ui-top);
+  padding-top: 0;
 }
 
 @media (max-width: 900px) {

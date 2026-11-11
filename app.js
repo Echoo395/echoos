@@ -2689,6 +2689,7 @@
     dom.searchInput.value = '';
     renderSearchResults('');
     openModal(dom.searchModal, dom.searchInput);
+    syncWechatViewport();
   }
 
   function closeSearch(restoreFocus = true) {
@@ -2699,6 +2700,7 @@
     }
     closeModal(dom.searchModal, restoreFocus);
     window.scrollTo(0, 0);
+    syncWechatViewport();
   }
 
   function openShare() {
@@ -3287,7 +3289,21 @@
     }, 820);
   }
 
+  function syncWechatViewport() {
+    const root = document.documentElement;
+    if (!root.classList.contains('is-wechat-ios')) return;
+    const viewportHeight = window.visualViewport
+      ? window.visualViewport.height
+      : window.innerHeight;
+    const height = Math.round(viewportHeight);
+    if (height > 0) {
+      root.style.setProperty('--wechat-app-height', `${height}px`);
+    }
+  }
+
   async function init() {
+    syncWechatViewport();
+    window.scrollTo(0, 0);
     if (!measure()) {
       window.setTimeout(init, 80);
       return;
@@ -3310,6 +3326,16 @@
     bindEvents();
     bindFeatureEvents();
     searchItems = buildSearchIndex();
+    syncWechatViewport();
+    window.addEventListener('resize', syncWechatViewport, { passive: true });
+    window.addEventListener('pageshow', syncWechatViewport);
+    window.addEventListener('orientationchange', () => {
+      window.setTimeout(syncWechatViewport, 260);
+    });
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', syncWechatViewport, { passive: true });
+      window.visualViewport.addEventListener('scroll', syncWechatViewport, { passive: true });
+    }
     initStarfield();
     initButtonEffects();
     initPageLightEffects();
