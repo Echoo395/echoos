@@ -3107,3 +3107,20 @@ body.is-intro .ambient-vignette { opacity: .55; }
   }
   .ambient-glow { animation: none; }
 }
+
+/* WeChat iOS adds its own browser header above the webview. */
+html.is-wechat-ios {
+  --wechat-ui-top: 72px;
+}
+
+html.is-wechat-ios .app {
+  padding-top: var(--wechat-ui-top);
+}
+
+html.is-wechat-ios .drawer {
+  top: var(--wechat-ui-top);
+}
+
+html.is-wechat-ios .zoom-modal {
+  padding-top: var(--wechat-ui-top);
+}
