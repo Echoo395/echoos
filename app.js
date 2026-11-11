@@ -177,6 +177,8 @@
   let drawerCloseTimer = 0;
   let tocView = 'directory';
   let searchOpen = false;
+  let searchLocked = false;
+  let searchScrollY = 0;
   let shareOpen = false;
   let helpOpen = false;
   let pdfOpen = false;
@@ -2686,22 +2688,22 @@
     if (drawerOpen) closeDrawer(false);
     window.scrollTo(0, 0);
     searchOpen = true;
+    lockPageForSearch();
     if (!searchItems.length) searchItems = buildSearchIndex();
     dom.searchInput.value = '';
     renderSearchResults('');
     openModal(dom.searchModal, dom.searchInput);
-    syncWechatViewport();
   }
 
   function closeSearch(restoreFocus = true) {
     if (!searchOpen) return;
     searchOpen = false;
-    if (!restoreFocus && document.activeElement && dom.searchModal.contains(document.activeElement)) {
+    if (document.activeElement && dom.searchModal.contains(document.activeElement)) {
       document.activeElement.blur();
     }
     closeModal(dom.searchModal, restoreFocus);
-    window.scrollTo(0, 0);
-    syncWechatViewport();
+    unlockPageForSearch();
+    scheduleKeyboardRecovery();
   }
 
   function openShare() {
@@ -3293,7 +3295,7 @@
 
   function syncWechatViewport() {
     const root = document.documentElement;
-    if (!root.classList.contains('is-wechat-ios')) return;
+    if (!root.classList.contains('is-wechat-ios') || searchOpen || searchLocked) return;
     const viewportHeight = window.visualViewport
       ? window.visualViewport.height
       : window.innerHeight;
@@ -3301,6 +3303,42 @@
     if (height > 0) {
       root.style.setProperty('--wechat-app-height', `${height}px`);
     }
+  }
+
+  function lockPageForSearch() {
+    if (!document.documentElement.classList.contains('is-wechat-ios') || searchLocked) return;
+    searchScrollY = window.scrollY || 0;
+    document.body.style.position = 'fixed';
+    document.body.style.top = `-${searchScrollY}px`;
+    document.body.style.left = '0';
+    document.body.style.right = '0';
+    document.body.style.width = '100%';
+    document.body.style.overflow = 'hidden';
+    searchLocked = true;
+  }
+
+  function unlockPageForSearch() {
+    if (!searchLocked) return;
+    searchLocked = false;
+    document.body.style.position = '';
+    document.body.style.top = '';
+    document.body.style.left = '';
+    document.body.style.right = '';
+    document.body.style.width = '';
+    document.body.style.overflow = '';
+  }
+
+  function resetAfterKeyboard() {
+    window.scrollTo(0, 0);
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+    syncWechatViewport();
+  }
+
+  function scheduleKeyboardRecovery() {
+    [0, 120, 320, 650, 1000].forEach((delay) => {
+      window.setTimeout(resetAfterKeyboard, delay);
+    });
   }
 
   async function init() {
