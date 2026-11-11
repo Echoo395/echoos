@@ -1,4 +1,4 @@
-/* =========================================================
+﻿/* =========================================================
    千寻电气 · 产品图册
    Responsive flipbook viewer
    ========================================================= */
@@ -3133,11 +3133,15 @@ html.is-wechat-ios .zoom-modal {
 }
 
 html.is-wechat-ios .app {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
+  position: relative;
   height: var(--wechat-app-height, 100dvh);
+}
+html.is-wechat-ios body {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
 }
 
 .zoom-back {
