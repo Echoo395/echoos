@@ -56,7 +56,6 @@
     pageStatus: $('#pageStatus'),
     pageTitle: $('#pageTitle'),
     pageCount: $('#pageCount'),
-    sectionLabel: $('#sectionLabel'),
     scrubber: $('#scrubber'),
     hint: $('#hint'),
     hintText: $('#hintText'),
@@ -1292,7 +1291,6 @@
     dom.pageTitle.textContent = title;
     dom.pageStatus.title = title.replace(/\n/g, ' / ');
     dom.pageCount.textContent = `${pad2(pageNumber(first))}${visible.length > 1 ? '–' + pad2(pageNumber(last)) : ''} / ${TOTAL}`;
-    dom.sectionLabel.textContent = section;
 
     const atStart = mode === 'single' ? singleIndex === 0 : spreadIndex === 0;
     const atEnd = mode === 'single' ? singleIndex === TOTAL - 1 : spreadIndex === spreads.length - 1;
@@ -2688,6 +2686,7 @@
   function openSearch() {
     if (!ready || searchOpen) return;
     if (drawerOpen) closeDrawer(false);
+    window.scrollTo(0, 0);
     searchOpen = true;
     if (!searchItems.length) searchItems = buildSearchIndex();
     dom.searchInput.value = '';
@@ -2698,7 +2697,11 @@
   function closeSearch(restoreFocus = true) {
     if (!searchOpen) return;
     searchOpen = false;
+    if (!restoreFocus && document.activeElement && dom.searchModal.contains(document.activeElement)) {
+      document.activeElement.blur();
+    }
     closeModal(dom.searchModal, restoreFocus);
+    window.scrollTo(0, 0);
   }
 
   function openShare() {
