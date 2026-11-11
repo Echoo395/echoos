@@ -76,6 +76,7 @@
     thumbGrid: $('#thumbGrid'),
     zoomModal: $('#zoomModal'),
     zoomClose: $('#zoomClose'),
+    zoomBack: $('#zoomBack'),
     zoomTitle: $('#zoomTitle'),
     zoomMeta: $('#zoomMeta'),
     zoomStage: $('#zoomStage'),
@@ -3065,6 +3066,7 @@
 
     dom.zoomBtn.addEventListener('click', () => openZoom(activePage()));
     dom.zoomClose.addEventListener('click', closeZoom);
+    dom.zoomBack.addEventListener('click', closeZoom);
     dom.zoomIn.addEventListener('click', () => zoomBy(1.45));
     dom.zoomOut.addEventListener('click', () => zoomBy(1 / 1.45));
     dom.zoomFit.addEventListener('click', resetZoom);

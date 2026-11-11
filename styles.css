@@ -3131,3 +3131,30 @@ html.is-wechat-ios .zoom-modal {
 }@media (max-width: 620px) {
   .reading-hint { font-size: 10.5px; padding: 5px 10px; }
 }
+
+html.is-wechat-ios .app {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: var(--wechat-app-height, 100dvh);
+}
+
+.zoom-back {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  min-height: 36px;
+  padding: 0 14px;
+  border: 1px solid rgba(94, 171, 255, .38);
+  border-radius: 8px;
+  background: rgba(74, 168, 255, .12);
+  color: #d9ecff;
+  font-size: 10.5px;
+  letter-spacing: .06em;
+  cursor: pointer;
+}
+
+@media (max-width: 900px) {
+  .zoom-back { display: inline-flex; }
+}
