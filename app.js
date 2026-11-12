@@ -52,6 +52,7 @@
     zoomBtn: $('#zoomBtn'),
     soundBtn: $('#soundBtn'),
     fullBtn: $('#fullBtn'),
+    rotateBtn: $('#rotateBtn'),
     brandHome: $('#brandHome'),
     pageStatus: $('#pageStatus'),
     pageTitle: $('#pageTitle'),
@@ -150,6 +151,7 @@
   });
 
   let mode = 'spread';
+  let orientationOverride = null;
   let spreadIndex = 0;
   let singleIndex = 0;
   let pageWidth = 0;
@@ -615,9 +617,18 @@
 
   /* ---------- Layout ---------- */
 
+  function isPhoneLandscape() {
+    return IS_COARSE
+      && window.innerWidth > window.innerHeight
+      && window.innerWidth <= 1000
+      && window.innerHeight <= 620;
+  }
+
   function detectMode() {
     const width = window.innerWidth;
     const height = window.innerHeight;
+    if (orientationOverride) return orientationOverride;
+    if (isPhoneLandscape()) return 'spread';
     if (width < 900) return 'single';
     if (IS_COARSE) {
       if (width < 980 || height < 600) return 'single';
@@ -739,6 +750,30 @@
     dom.bookShadow.style.opacity = '0.9';
   }
 
+  function updateOrientationButton() {
+    if (!dom.rotateBtn) return;
+    const target = mode === 'single' ? '横屏' : '竖屏';
+    dom.rotateBtn.setAttribute('aria-label', `切换到${target}模式`);
+    dom.rotateBtn.setAttribute('title', `切换到${target}模式`);
+    dom.rotateBtn.setAttribute('aria-pressed', String(Boolean(orientationOverride)));
+    dom.rotateBtn.classList.toggle('is-on', Boolean(orientationOverride));
+  }
+
+  function toggleOrientation() {
+    if (!ready || window.innerWidth > 900) return;
+    const target = mode === 'single' ? 'spread' : 'single';
+    orientationOverride = target;
+    updateOrientationButton();
+    scheduleRelayout();
+    showToast(target === 'spread' ? '已切换为横屏双页模式' : '已切换为竖屏单页模式', 2000);
+  }
+
+  function resetOrientationOverride() {
+    if (!orientationOverride) return;
+    orientationOverride = null;
+    updateOrientationButton();
+  }
+
   function relayout() {
     if (!ready) return;
 
@@ -748,8 +783,9 @@
 
     const anchor = activePage();
     const nextMode = detectMode();
+    const switched = nextMode !== mode;
 
-    if (nextMode !== mode) {
+    if (switched) {
       mode = nextMode;
       if (mode === 'single') {
         singleIndex = anchor;
@@ -766,7 +802,13 @@
     renderStatic(currentView());
     applyRestLayout();
     updateUI();
+    updateOrientationButton();
     preloadAround();
+
+    if (switched) {
+      dom.app.classList.add('is-orientation-switching');
+      window.setTimeout(() => dom.app.classList.remove('is-orientation-switching'), 460);
+    }
 
     if (zoomState.open) {
       window.requestAnimationFrame(() => {
@@ -3102,6 +3144,7 @@
 
     dom.soundBtn.addEventListener('click', toggleSound);
     dom.fullBtn.addEventListener('click', toggleFullscreen);
+    dom.rotateBtn.addEventListener('click', toggleOrientation);
 
     dom.scrubber.addEventListener('input', () => {
       const value = Number(dom.scrubber.value);
@@ -3126,8 +3169,20 @@
 
     window.addEventListener('resize', scheduleRelayout, { passive: true });
     window.addEventListener('orientationchange', () => {
+      resetOrientationOverride();
       window.setTimeout(scheduleRelayout, 260);
     });
+
+    const orientationQuery = window.matchMedia('(orientation: landscape)');
+    const handleOrientationQuery = () => {
+      resetOrientationOverride();
+      scheduleRelayout();
+    };
+    if (typeof orientationQuery.addEventListener === 'function') {
+      orientationQuery.addEventListener('change', handleOrientationQuery);
+    } else if (typeof orientationQuery.addListener === 'function') {
+      orientationQuery.addListener(handleOrientationQuery);
+    }
 
     document.addEventListener('fullscreenchange', () => {
       updateFullscreenUI();
@@ -3371,6 +3426,7 @@
     renderStatic(currentView());
     applyRestLayout();
     updateUI();
+    updateOrientationButton();
     buildDirectory();
     buildThumbs();
     updateThumbCurrent();
