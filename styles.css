@@ -4233,3 +4233,24 @@ html.is-wechat-ios .app {
   transform: scale(.992);
   transition: opacity .24s ease, transform .3s ease;
 }
+
+/* Remove the cosmic explosion; keep stars, logo shine and text fade. */
+.intro-explosion {
+  display: none !important;
+}
+
+.intro-logo-base {
+  animation-delay: .38s;
+  animation-duration: .7s;
+}
+
+.intro-logo-shine {
+  animation-delay: .5s;
+  animation-duration: 1.15s;
+}
+
+.intro-name { animation-delay: 1.05s; }
+.intro-full { animation-delay: 1.18s; }
+.intro-rule { animation-delay: 1.28s; }
+.intro-en { animation-delay: 1.36s; }
+.intro-tag { animation-delay: 1.46s; }
