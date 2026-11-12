@@ -14,7 +14,7 @@
   </script>
   <link rel="preload" as="image" href="assets/brand/chaser-logo.webp" fetchpriority="high">
   <link rel="preload" as="image" href="assets/pages/001.webp" fetchpriority="high">
-  <link rel="stylesheet" href="styles.css?v=20261111j">
+  <link rel="stylesheet" href="styles.css?v=20261111k">
 </head>
 <body class="is-intro">
   <div class="app is-intro" id="app">
@@ -38,33 +38,41 @@
       </a>
 
       <nav class="top-actions" aria-label="阅读工具">
-        <button class="tool-btn tool-btn--text" id="tocBtn" type="button" aria-label="打开页面目录" aria-expanded="false" aria-controls="drawer">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5.5h6.5v6.5H4zM13.5 5.5H20v6.5h-6.5zM4 12.5h6.5V19H4zM13.5 12.5H20V19h-6.5z"/></svg>
-          <span>目录</span>
-        </button>
-        <button class="tool-btn tool-btn--desktop" id="searchBtn" type="button" aria-label="搜索型号或系列" title="搜索（/）">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.6" cy="10.6" r="6.2"/><path d="m15.2 15.2 4.3 4.3"/></svg>
-        </button>
-        <button class="tool-btn tool-btn--desktop" id="pdfBtn" type="button" aria-label="下载整本 PDF" title="下载整本 PDF">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v10m0 0 4-4m-4 4-4-4M5 18h14"/></svg>
-        </button>
-        <button class="tool-btn" id="zoomBtn" type="button" aria-label="查看大图" title="查看大图">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.6" cy="10.6" r="6.2"/><path d="m15.2 15.2 4.3 4.3M10.6 7.7v5.8M7.7 10.6h5.8"/></svg>
-        </button>
-        <button class="tool-btn" id="soundBtn" type="button" aria-label="开启翻页音效" aria-pressed="false" title="翻页音效">
-          <svg class="icon-sound-on" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9.4v5.2h3.3l4.2 3.5V5.9L7.3 9.4H4z"/><path d="M15 8.4a5.2 5.2 0 0 1 0 7.2M17.8 5.8a8.7 8.7 0 0 1 0 12.4"/></svg>
-          <svg class="icon-sound-off" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9.4v5.2h3.3l4.2 3.5V5.9L7.3 9.4H4z"/><path d="m15.2 9.2 5 5.6M20.2 9.2l-5 5.6"/></svg>
-        </button>
-        <button class="tool-btn" id="shareBtn" type="button" aria-label="分享整本图册" title="分享">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="12" r="2.1"/><circle cx="18" cy="6" r="2.1"/><circle cx="18" cy="18" r="2.1"/><path d="m8 11 7.8-4M8 13l7.8 4"/></svg>
-        </button>
-        <button class="tool-btn" id="fullBtn" type="button" aria-label="进入全屏" title="全屏">
-          <svg class="icon-expand" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4H4v5M15 4h5v5M9 20H4v-5M15 20h5v-5"/></svg>
-          <svg class="icon-compress" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h5V4M20 9h-5V4M4 15h5v5M20 15h-5v5"/></svg>
-        </button>
-        <button class="tool-btn" id="helpBtn" type="button" aria-label="查看操作提示" title="操作提示（?）">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.2"/><path d="M9.7 9.4a2.5 2.5 0 1 1 3.5 2.3c-.8.4-1.2.9-1.2 1.8"/><circle cx="12" cy="16.7" r=".8" fill="currentColor" stroke="none"/></svg>
-        </button>
+        <span class="tool-group">
+          <button class="tool-btn tool-btn--text" id="tocBtn" type="button" aria-label="打开页面目录" aria-expanded="false" aria-controls="drawer">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5.5h6.5v6.5H4zM13.5 5.5H20v6.5h-6.5zM4 12.5h6.5V19H4zM13.5 12.5H20V19h-6.5z"/></svg>
+            <span>目录</span>
+          </button>
+          <button class="tool-btn tool-btn--desktop" id="searchBtn" type="button" aria-label="搜索型号或系列" title="搜索（/）">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.6" cy="10.6" r="6.2"/><path d="m15.2 15.2 4.3 4.3"/></svg>
+          </button>
+          <button class="tool-btn tool-btn--desktop" id="pdfBtn" type="button" aria-label="下载整本 PDF" title="下载整本 PDF">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v10m0 0 4-4m-4 4-4-4M5 18h14"/></svg>
+          </button>
+        </span>
+
+        <span class="tool-group">
+          <button class="tool-btn" id="zoomBtn" type="button" aria-label="查看大图" title="查看大图">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.6" cy="10.6" r="6.2"/><path d="m15.2 15.2 4.3 4.3M10.6 7.7v5.8M7.7 10.6h5.8"/></svg>
+          </button>
+          <button class="tool-btn" id="soundBtn" type="button" aria-label="开启翻页音效" aria-pressed="false" title="翻页音效">
+            <svg class="icon-sound-on" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9.4v5.2h3.3l4.2 3.5V5.9L7.3 9.4H4z"/><path d="M15 8.4a5.2 5.2 0 0 1 0 7.2M17.8 5.8a8.7 8.7 0 0 1 0 12.4"/></svg>
+            <svg class="icon-sound-off" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9.4v5.2h3.3l4.2 3.5V5.9L7.3 9.4H4z"/><path d="m15.2 9.2 5 5.6M20.2 9.2l-5 5.6"/></svg>
+          </button>
+          <button class="tool-btn" id="shareBtn" type="button" aria-label="分享整本图册" title="分享">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="12" r="2.1"/><circle cx="18" cy="6" r="2.1"/><circle cx="18" cy="18" r="2.1"/><path d="m8 11 7.8-4M8 13l7.8 4"/></svg>
+          </button>
+        </span>
+
+        <span class="tool-group">
+          <button class="tool-btn" id="fullBtn" type="button" aria-label="进入全屏" title="全屏">
+            <svg class="icon-expand" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4H4v5M15 4h5v5M9 20H4v-5M15 20h5v-5"/></svg>
+            <svg class="icon-compress" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h5V4M20 9h-5V4M4 15h5v5M20 15h-5v5"/></svg>
+          </button>
+          <button class="tool-btn" id="helpBtn" type="button" aria-label="查看操作提示" title="操作提示（?）">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.2"/><path d="M9.7 9.4a2.5 2.5 0 1 1 3.5 2.3c-.8.4-1.2.9-1.2 1.8"/><circle cx="12" cy="16.7" r=".8" fill="currentColor" stroke="none"/></svg>
+          </button>
+        </span>
       </nav>
     </header>
 
@@ -137,6 +145,9 @@
       <div class="progress-row">
         <span class="progress-index">01</span>
         <div class="range-wrap">
+          <span class="range-ticks" aria-hidden="true">
+            <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+          </span>
           <input id="scrubber" class="scrubber" type="range" min="1" max="70" value="1" step="1" aria-label="跳转页面">
         </div>
         <span class="progress-index">70</span>
@@ -400,8 +411,8 @@
     <div class="noscript">请启用浏览器 JavaScript 后重新打开本图册。</div>
   </noscript>
 
-  <script src="data/pages.js?v=20261111j"></script>
-  <script src="data/toc.js?v=20261111j"></script>
-  <script src="app.js?v=20261111j"></script>
+  <script src="data/pages.js?v=20261111k"></script>
+  <script src="data/toc.js?v=20261111k"></script>
+  <script src="app.js?v=20261111k"></script>
 </body>
 </html>

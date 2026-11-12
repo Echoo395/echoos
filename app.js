@@ -1,4 +1,4 @@
-﻿/* =========================================================
+/* =========================================================
    千寻电气 · 产品图册
    Custom two-page / single-page flipbook
    No framework, no network dependency
@@ -1402,7 +1402,7 @@
 
     const fragment = document.createDocumentFragment();
 
-    TOC.forEach((item) => {
+    TOC.forEach((item, index) => {
       const row = document.createElement('button');
       row.type = 'button';
       row.className = 'toc-row';
@@ -1410,9 +1410,10 @@
       row.dataset.end = String(item.end);
       row.setAttribute('aria-label', `${item.name}，印刷页 ${pageRangeText(item.start, item.end)}，点击跳转`);
 
-      const bullet = document.createElement('span');
-      bullet.className = 'toc-bullet';
-      bullet.setAttribute('aria-hidden', 'true');
+      const number = document.createElement('span');
+      number.className = 'toc-number';
+      number.textContent = pad2(index + 1);
+      number.setAttribute('aria-hidden', 'true');
 
       const name = document.createElement('span');
       name.className = 'toc-name';
@@ -1422,7 +1423,7 @@
       range.className = 'toc-range';
       range.textContent = pageRangeText(item.start, item.end);
 
-      row.append(bullet, name, range);
+      row.append(number, name, range);
       row.addEventListener('click', () => {
         goToPage(item.start + 2);
       });
@@ -2772,7 +2773,18 @@
   }
 
   function bindContactEvents() {
+    const canHover = window.matchMedia('(hover: hover)').matches;
+    const setHover = (active) => {
+      [dom.contactHighlight, dom.contactHighlightGlow, dom.contactHighlightBadge].forEach((element) => {
+        element.classList.toggle('is-hover', active && canHover);
+      });
+    };
+
     dom.contactHighlightHit.addEventListener('click', openContactModal);
+    dom.contactHighlightHit.addEventListener('pointerenter', () => setHover(true));
+    dom.contactHighlightHit.addEventListener('pointerleave', () => setHover(false));
+    dom.contactHighlightHit.addEventListener('focus', () => setHover(true));
+    dom.contactHighlightHit.addEventListener('blur', () => setHover(false));
     dom.contactClose.addEventListener('click', () => closeContactModal());
     dom.contactModal.addEventListener('click', (event) => {
       if (event.target === dom.contactModal) closeContactModal();
