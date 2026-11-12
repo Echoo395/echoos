@@ -163,7 +163,7 @@
   window.setTimeout(() => {
     introElapsed = true;
     finishIntroIfReady();
-  }, 2500);
+  }, 1200);
   let rafId = 0;
   let flip = null;
   let audioContext = null;
@@ -555,7 +555,7 @@
       });
     }
 
-    Array.from(indexes).slice(0, 9).forEach((index) => {
+    Array.from(indexes).slice(0, 6).forEach((index) => {
       const timer = window.setTimeout(() => loadPage(index), 90);
       void timer;
     });
@@ -2684,7 +2684,7 @@
   }
 
   function openSearch() {
-    if (!ready || searchOpen) return;
+    if (!ready || searchOpen || window.innerWidth <= 900) return;
     if (drawerOpen) closeDrawer(false);
     window.scrollTo(0, 0);
     searchOpen = true;
@@ -2794,7 +2794,6 @@
           ['双击页面', '放大当前页'],
           ['双指缩放', '放大后拖动查看'],
           ['底部页码 / 目录', '快速跳转系列或页面'],
-          ['右上角放大镜', '搜索型号 / 系列'],
           ['右上角分享', '分享整本图册'],
           ['右上角 ?', '随时打开本提示']
         ]
@@ -3290,7 +3289,7 @@
 
     window.setTimeout(() => {
       if (dom.intro) dom.intro.hidden = true;
-    }, 820);
+    }, 600);
   }
 
   function syncWechatViewport() {
@@ -3388,11 +3387,11 @@
 
     await Promise.race([
       Promise.all(Array.from(bootPages).map(loadPage)),
-      delay(1800)
+      delay(1200)
     ]);
     await Promise.race([
       Promise.all(Array.from(bootPages).map(decodePage)),
-      delay(240)
+      delay(160)
     ]);
 
     ready = true;
@@ -3404,7 +3403,6 @@
     }, 180);
 
     preloadAround();
-    if (!IS_PREVIEW_FRAME) queuePageCacheWarmup();
     window.setTimeout(showHint, 1150);
   }
 

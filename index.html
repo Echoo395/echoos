@@ -12,7 +12,9 @@
       document.documentElement.classList.add('is-wechat-ios');
     }
   </script>
-  <link rel="stylesheet" href="styles.css?v=20261111f">
+  <link rel="preload" as="image" href="assets/brand/chaser-logo.webp" fetchpriority="high">
+  <link rel="preload" as="image" href="assets/pages/001.webp" fetchpriority="high">
+  <link rel="stylesheet" href="styles.css?v=20261111g">
 </head>
 <body class="is-intro">
   <div class="app is-intro" id="app">
@@ -30,7 +32,7 @@
     <header class="topbar">
       <a class="brand" href="#cover" id="brandHome" aria-label="返回封面">
         <span class="brand-copy">
-          <img class="brand-logo" src="assets/brand/chaser-logo.webp" alt="Chaser 千寻电气" draggable="false">
+          <img class="brand-logo" src="assets/brand/chaser-logo.webp" width="947" height="323" alt="Chaser 千寻电气" draggable="false">
           <span class="brand-cn">千寻电气 <i></i> 产品图册</span>
         </span>
       </a>
@@ -40,7 +42,7 @@
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5.5h6.5v6.5H4zM13.5 5.5H20v6.5h-6.5zM4 12.5h6.5V19H4zM13.5 12.5H20V19h-6.5z"/></svg>
           <span>目录</span>
         </button>
-        <button class="tool-btn" id="searchBtn" type="button" aria-label="搜索型号或系列" title="搜索（/）">
+        <button class="tool-btn tool-btn--desktop" id="searchBtn" type="button" aria-label="搜索型号或系列" title="搜索（/）">
           <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.6" cy="10.6" r="6.2"/><path d="m15.2 15.2 4.3 4.3"/></svg>
         </button>
         <button class="tool-btn tool-btn--desktop" id="pdfBtn" type="button" aria-label="下载整本 PDF" title="下载整本 PDF">
@@ -380,8 +382,7 @@
     <div class="intro-haze" aria-hidden="true"></div>
     <div class="intro-scene">
       <div class="intro-logo">
-        <img class="intro-logo-base" src="assets/brand/chaser-logo.webp" alt="Chaser 千寻电气">
-        <img class="intro-logo-shine" src="assets/brand/chaser-logo.webp" alt="" aria-hidden="true">
+        <img class="intro-logo-base" src="assets/brand/chaser-logo.webp" width="947" height="323" alt="Chaser 千寻电气">
       </div>
       <div class="intro-name">千寻电气</div>
       <div class="intro-full">温州千寻电气科技有限公司</div>
@@ -398,8 +399,8 @@
     <div class="noscript">请启用浏览器 JavaScript 后重新打开本图册。</div>
   </noscript>
 
-  <script src="data/pages.js?v=20261111f"></script>
-  <script src="data/toc.js?v=20261111f"></script>
-  <script src="app.js?v=20261111f"></script>
+  <script src="data/pages.js?v=20261111g"></script>
+  <script src="data/toc.js?v=20261111g"></script>
+  <script src="app.js?v=20261111g"></script>
 </body>
 </html>
