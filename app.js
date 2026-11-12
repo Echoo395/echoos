@@ -174,6 +174,8 @@
   let toastTimer = 0;
   let hintTimer = 0;
   let resizeTimer = 0;
+  let prefetchHoldUntil = 0;
+  let warmupTimer = 0;
   let lastFocus = null;
   let drawerOpen = false;
   let drawerCloseTimer = 0;
@@ -415,7 +417,7 @@
   const loadingSources = new Map();
   const loadedImages = new Map();
 
-  function loadSource(src) {
+  function loadSource(src, priority = 'auto') {
     if (!src) return Promise.resolve();
     if (loadedSources.has(src)) return Promise.resolve();
     if (loadingSources.has(src)) return loadingSources.get(src);
@@ -434,6 +436,7 @@
       };
 
       const image = new Image();
+      if ('fetchPriority' in image) image.fetchPriority = priority;
       image.onload = finish;
       image.onerror = finish;
       image.src = src;
@@ -445,8 +448,8 @@
     return promise;
   }
 
-  function loadPage(index) {
-    return PAGES[index] ? loadSource(PAGES[index].page) : Promise.resolve();
+  function loadPage(index, priority = 'auto') {
+    return PAGES[index] ? loadSource(PAGES[index].page, priority) : Promise.resolve();
   }
 
   async function decodePage(index) {
@@ -564,6 +567,11 @@
   }
 
   function queuePageCacheWarmup() {
+    if (isTouchDevice() || window.innerWidth < 900) return;
+    if (navigator.connection && navigator.connection.saveData) return;
+    if (navigator.connection && /(^|-)2g$/.test(navigator.connection.effectiveType || '')) return;
+    if (warmupTimer) return;
+
     const order = [];
     const seen = new Set();
 
@@ -595,8 +603,10 @@
 
     let cursor = 0;
     const run = async () => {
-      if (busy || flip) {
-        window.setTimeout(run, 200);
+      warmupTimer = 0;
+
+      if (document.hidden || busy || flip || zoomState.open || Date.now() < prefetchHoldUntil) {
+        warmupTimer = window.setTimeout(run, 600);
         return;
       }
 
@@ -604,15 +614,16 @@
       cursor += 1;
       if (index == null) return;
 
-      await loadPage(index);
-      await decodePage(index);
+      await loadPage(index, 'low');
 
       if (cursor < order.length) {
-        window.setTimeout(run, 55);
+        warmupTimer = window.setTimeout(run, 170);
       }
     };
 
-    window.setTimeout(run, 90);
+    // Deliberately start after the intro and first paint. This is a low-priority
+    // cache warmup, never part of the critical initial load.
+    warmupTimer = window.setTimeout(run, 3800);
   }
 
   /* ---------- Layout ---------- */
@@ -3004,6 +3015,7 @@
 
   function openPdfExport() {
     if (!ready) return;
+    prefetchHoldUntil = Date.now() + 18000;
     if (drawerOpen) closeDrawer(false);
     triggerPdfDownload('assets/qianxun-catalog.pdf', '千寻电气产品图册.pdf');
     showToast('PDF 正在下载');
@@ -3451,6 +3463,7 @@
     }, 180);
 
     preloadAround();
+    queuePageCacheWarmup();
     window.setTimeout(showHint, 1150);
   }
 
