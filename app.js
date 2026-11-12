@@ -163,7 +163,7 @@
   window.setTimeout(() => {
     introElapsed = true;
     finishIntroIfReady();
-  }, 900);
+  }, 2500);
   let rafId = 0;
   let flip = null;
   let audioContext = null;
@@ -3289,7 +3289,7 @@
 
     window.setTimeout(() => {
       if (dom.intro) dom.intro.hidden = true;
-    }, 500);
+    }, 820);
   }
 
   function syncWechatViewport() {

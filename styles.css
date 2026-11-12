@@ -1,4 +1,4 @@
-﻿/* =========================================================
+/* =========================================================
    千寻电气 · 产品图册
    Responsive flipbook viewer
    ========================================================= */
@@ -2147,7 +2147,7 @@ body.is-intro .ambient-vignette { opacity: .55; }
   padding: 54px 82px;
   overflow: visible;
   text-align: center;
-  animation: none;
+  animation: intro-scene-in 1s cubic-bezier(.18, .8, .24, 1) both;
 }
 
 @keyframes intro-scene-in {
