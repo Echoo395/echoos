@@ -152,7 +152,6 @@
 
   let mode = 'spread';
   let orientationOverride = null;
-  let lastPhysicalOrientation = null;
   let spreadIndex = 0;
   let singleIndex = 0;
   let pageWidth = 0;
@@ -624,19 +623,11 @@
       || window.matchMedia('(pointer: coarse)').matches;
   }
 
-  function isLandscapeOrientation() {
-    return window.innerWidth > window.innerHeight;
-  }
-
-  function physicalOrientation() {
-    return isLandscapeOrientation() ? 'landscape' : 'portrait';
-  }
-
   function detectMode() {
     const width = window.innerWidth;
     const height = window.innerHeight;
     if (orientationOverride) return orientationOverride;
-    if (isTouchDevice() && isLandscapeOrientation() && width >= 520) return 'spread';
+    if (isTouchDevice() && width < 1100) return 'single';
     if (width < 900) return 'single';
     if (IS_COARSE) {
       if (width < 980 || height < 600) return 'single';
@@ -760,11 +751,12 @@
 
   function updateOrientationButton() {
     if (!dom.rotateBtn) return;
-    const target = mode === 'single' ? '横屏' : '竖屏';
+    const target = mode === 'single' ? '双页' : '单页';
     dom.rotateBtn.setAttribute('aria-label', `切换到${target}模式`);
     dom.rotateBtn.setAttribute('title', `切换到${target}模式`);
     dom.rotateBtn.setAttribute('aria-pressed', String(Boolean(orientationOverride)));
     dom.rotateBtn.classList.toggle('is-on', Boolean(orientationOverride));
+    dom.rotateBtn.classList.toggle('is-spread', mode === 'spread');
   }
 
   function toggleOrientation() {
@@ -773,24 +765,7 @@
     orientationOverride = target;
     updateOrientationButton();
     scheduleRelayout();
-    showToast(target === 'spread' ? '已切换为横屏双页模式' : '已切换为竖屏单页模式', 2000);
-  }
-
-  function refreshOrientation() {
-    const current = physicalOrientation();
-    if (lastPhysicalOrientation && current !== lastPhysicalOrientation) {
-      lastPhysicalOrientation = current;
-      orientationOverride = null;
-      updateOrientationButton();
-    }
-    scheduleRelayout();
-  }
-
-  function scheduleOrientationSettle() {
-    refreshOrientation();
-    [120, 350, 750, 1200].forEach((delay) => {
-      window.setTimeout(refreshOrientation, delay);
-    });
+    showToast(target === 'spread' ? '已切换为双页模式' : '已切换为单页模式', 2000);
   }
 
   function relayout() {
@@ -3186,27 +3161,10 @@
       openZoom(pageIndexFromPoint(event.clientX, event.clientY));
     });
 
-    window.addEventListener('resize', scheduleOrientationSettle, { passive: true });
-    window.addEventListener('orientationchange', scheduleOrientationSettle);
-
-    const orientationQuery = window.matchMedia('(orientation: landscape)');
-    if (typeof orientationQuery.addEventListener === 'function') {
-      orientationQuery.addEventListener('change', scheduleOrientationSettle);
-    } else if (typeof orientationQuery.addListener === 'function') {
-      orientationQuery.addListener(scheduleOrientationSettle);
-    }
-
-    if (screen.orientation && typeof screen.orientation.addEventListener === 'function') {
-      screen.orientation.addEventListener('change', scheduleOrientationSettle);
-    }
-
-    if (isTouchDevice()) {
-      window.setInterval(() => {
-        if (physicalOrientation() !== lastPhysicalOrientation) {
-          scheduleOrientationSettle();
-        }
-      }, 600);
-    }
+    window.addEventListener('resize', scheduleRelayout, { passive: true });
+    window.addEventListener('orientationchange', () => {
+      window.setTimeout(scheduleRelayout, 260);
+    });
 
     document.addEventListener('fullscreenchange', () => {
       updateFullscreenUI();
@@ -3439,7 +3397,6 @@
       return;
     }
 
-    lastPhysicalOrientation = physicalOrientation();
     mode = detectMode();
     if (mode === 'single') {
       singleIndex = 0;

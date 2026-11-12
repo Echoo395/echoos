@@ -1,4 +1,4 @@
-﻿/* =========================================================
+/* =========================================================
    千寻电气 · 产品图册
    Responsive flipbook viewer
    ========================================================= */
@@ -4286,41 +4286,6 @@ html.is-wechat-ios .app {
   100% { opacity: 1; transform: translateY(0) scale(1); }
 }
 
-@media (orientation: landscape) and (max-height: 520px) and (max-width: 1000px) {
-  :root {
-    --header-h: 46px;
-    --footer-h: 80px;
-  }
-
-  .topbar {
-    flex-basis: calc(46px + env(safe-area-inset-top, 0px));
-    height: calc(46px + env(safe-area-inset-top, 0px));
-    padding: env(safe-area-inset-top, 0px) 12px 0;
-  }
-
-  .brand-logo { height: 20px; max-width: 100px; }
-  .brand-cn { font-size: 7.5px; letter-spacing: .02em; }
-  .topbar .tool-btn { height: 29px; min-width: 29px; padding: 0 5px; }
-  .tool-group { padding: 0 4px; }
-
-  .footer {
-    flex-basis: calc(80px + env(safe-area-inset-bottom, 0px));
-    padding: 3px 10px calc(4px + env(safe-area-inset-bottom, 0px));
-  }
-
-  .progress-row { display: flex; width: min(720px, 82vw); height: 14px; gap: 7px; }
-  .progress-index { font-size: 7.5px; min-width: 14px; }
-  .range-wrap, .scrubber { height: 14px; }
-  .dock { height: 40px; padding: 3px; }
-  .dock-btn { width: 28px; height: 28px; }
-  .page-status { height: 30px; min-width: 104px; max-width: 176px; }
-  .page-status__title { max-height: 18px; font-size: 9px; }
-  .page-status__count { font-size: 7.5px; }
-
-  .stage { padding-top: 3px; padding-bottom: 3px; }
-  .reading-hint { display: none; }
-}
-
 @media (max-width: 380px) {
   .brand-cn { display: none; }
   .topbar { gap: 6px; padding-left: 9px; padding-right: 9px; }
@@ -4331,4 +4296,14 @@ html.is-wechat-ios .app {
 /* Mobile landscape widths can exceed 900px: keep desktop-only tools hidden. */
 @media (max-width: 1000px) {
   .tool-btn--desktop { display: none !important; }
+}
+
+/* Single / double page icon state */
+.page-icon-right {
+  opacity: .28;
+  transition: opacity .24s ease;
+}
+
+.tool-btn--mobile.is-spread .page-icon-right {
+  opacity: 1;
 }
