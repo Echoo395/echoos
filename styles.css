@@ -1,4 +1,4 @@
-/* =========================================================
+﻿/* =========================================================
    千寻电气 · 产品图册
    Responsive flipbook viewer
    ========================================================= */
@@ -4260,7 +4260,7 @@ html.is-wechat-ios .app {
   display: none;
 }
 
-@media (max-width: 900px) {
+@media (max-width: 1000px) {
   .tool-btn--mobile { display: inline-flex; }
 }
 
@@ -4270,7 +4270,7 @@ html.is-wechat-ios .app {
 }
 
 .tool-btn--mobile.is-on svg {
-  transform: rotate(90deg);
+  transform: scale(1.04);
 }
 
 .tool-btn--mobile svg {
@@ -4326,4 +4326,9 @@ html.is-wechat-ios .app {
   .topbar { gap: 6px; padding-left: 9px; padding-right: 9px; }
   .tool-group { padding: 0 2px; }
   .tool-btn { min-width: 30px; padding: 0 4px; }
+}
+
+/* Mobile landscape widths can exceed 900px: keep desktop-only tools hidden. */
+@media (max-width: 1000px) {
+  .tool-btn--desktop { display: none !important; }
 }

@@ -152,6 +152,7 @@
 
   let mode = 'spread';
   let orientationOverride = null;
+  let lastPhysicalOrientation = null;
   let spreadIndex = 0;
   let singleIndex = 0;
   let pageWidth = 0;
@@ -617,18 +618,25 @@
 
   /* ---------- Layout ---------- */
 
-  function isPhoneLandscape() {
-    return IS_COARSE
-      && window.innerWidth > window.innerHeight
-      && window.innerWidth <= 1000
-      && window.innerHeight <= 620;
+  function isTouchDevice() {
+    return navigator.maxTouchPoints > 0
+      || 'ontouchstart' in window
+      || window.matchMedia('(pointer: coarse)').matches;
+  }
+
+  function isLandscapeOrientation() {
+    return window.innerWidth > window.innerHeight;
+  }
+
+  function physicalOrientation() {
+    return isLandscapeOrientation() ? 'landscape' : 'portrait';
   }
 
   function detectMode() {
     const width = window.innerWidth;
     const height = window.innerHeight;
     if (orientationOverride) return orientationOverride;
-    if (isPhoneLandscape()) return 'spread';
+    if (isTouchDevice() && isLandscapeOrientation() && width >= 520) return 'spread';
     if (width < 900) return 'single';
     if (IS_COARSE) {
       if (width < 980 || height < 600) return 'single';
@@ -760,7 +768,7 @@
   }
 
   function toggleOrientation() {
-    if (!ready || window.innerWidth > 900) return;
+    if (!ready || window.innerWidth > 1000) return;
     const target = mode === 'single' ? 'spread' : 'single';
     orientationOverride = target;
     updateOrientationButton();
@@ -768,10 +776,21 @@
     showToast(target === 'spread' ? '已切换为横屏双页模式' : '已切换为竖屏单页模式', 2000);
   }
 
-  function resetOrientationOverride() {
-    if (!orientationOverride) return;
-    orientationOverride = null;
-    updateOrientationButton();
+  function refreshOrientation() {
+    const current = physicalOrientation();
+    if (lastPhysicalOrientation && current !== lastPhysicalOrientation) {
+      lastPhysicalOrientation = current;
+      orientationOverride = null;
+      updateOrientationButton();
+    }
+    scheduleRelayout();
+  }
+
+  function scheduleOrientationSettle() {
+    refreshOrientation();
+    [120, 350, 750, 1200].forEach((delay) => {
+      window.setTimeout(refreshOrientation, delay);
+    });
   }
 
   function relayout() {
@@ -3167,21 +3186,26 @@
       openZoom(pageIndexFromPoint(event.clientX, event.clientY));
     });
 
-    window.addEventListener('resize', scheduleRelayout, { passive: true });
-    window.addEventListener('orientationchange', () => {
-      resetOrientationOverride();
-      window.setTimeout(scheduleRelayout, 260);
-    });
+    window.addEventListener('resize', scheduleOrientationSettle, { passive: true });
+    window.addEventListener('orientationchange', scheduleOrientationSettle);
 
     const orientationQuery = window.matchMedia('(orientation: landscape)');
-    const handleOrientationQuery = () => {
-      resetOrientationOverride();
-      scheduleRelayout();
-    };
     if (typeof orientationQuery.addEventListener === 'function') {
-      orientationQuery.addEventListener('change', handleOrientationQuery);
+      orientationQuery.addEventListener('change', scheduleOrientationSettle);
     } else if (typeof orientationQuery.addListener === 'function') {
-      orientationQuery.addListener(handleOrientationQuery);
+      orientationQuery.addListener(scheduleOrientationSettle);
+    }
+
+    if (screen.orientation && typeof screen.orientation.addEventListener === 'function') {
+      screen.orientation.addEventListener('change', scheduleOrientationSettle);
+    }
+
+    if (isTouchDevice()) {
+      window.setInterval(() => {
+        if (physicalOrientation() !== lastPhysicalOrientation) {
+          scheduleOrientationSettle();
+        }
+      }, 600);
     }
 
     document.addEventListener('fullscreenchange', () => {
@@ -3415,6 +3439,7 @@
       return;
     }
 
+    lastPhysicalOrientation = physicalOrientation();
     mode = detectMode();
     if (mode === 'single') {
       singleIndex = 0;
