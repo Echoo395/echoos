@@ -163,7 +163,7 @@
   window.setTimeout(() => {
     introElapsed = true;
     finishIntroIfReady();
-  }, 1200);
+  }, 900);
   let rafId = 0;
   let flip = null;
   let audioContext = null;
@@ -3289,7 +3289,7 @@
 
     window.setTimeout(() => {
       if (dom.intro) dom.intro.hidden = true;
-    }, 600);
+    }, 500);
   }
 
   function syncWechatViewport() {
@@ -3381,17 +3381,15 @@
     loadSoundPreference();
     setupFullscreenVisibility();
 
-    const firstTarget = targetView(1);
     const bootPages = new Set(viewPages(currentView()));
-    if (firstTarget) viewPages(firstTarget).forEach((index) => bootPages.add(index));
 
     await Promise.race([
       Promise.all(Array.from(bootPages).map(loadPage)),
-      delay(1200)
+      delay(900)
     ]);
     await Promise.race([
       Promise.all(Array.from(bootPages).map(decodePage)),
-      delay(160)
+      delay(120)
     ]);
 
     ready = true;
