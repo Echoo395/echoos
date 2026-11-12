@@ -176,6 +176,7 @@
   let resizeTimer = 0;
   let prefetchHoldUntil = 0;
   let warmupTimer = 0;
+  let warmupStarted = false;
   let lastFocus = null;
   let drawerOpen = false;
   let drawerCloseTimer = 0;
@@ -570,7 +571,8 @@
     if (isTouchDevice() || window.innerWidth < 900) return;
     if (navigator.connection && navigator.connection.saveData) return;
     if (navigator.connection && /(^|-)2g$/.test(navigator.connection.effectiveType || '')) return;
-    if (warmupTimer) return;
+    if (warmupStarted) return;
+    warmupStarted = true;
 
     const order = [];
     const seen = new Set();
@@ -602,28 +604,34 @@
     }
 
     let cursor = 0;
-    const run = async () => {
-      warmupTimer = 0;
+    const worker = async () => {
+      while (cursor < order.length) {
+        if (document.hidden || Date.now() < prefetchHoldUntil) {
+          await delay(600);
+          continue;
+        }
+        if (busy || flip || zoomState.open) {
+          await delay(300);
+          continue;
+        }
 
-      if (document.hidden || busy || flip || zoomState.open || Date.now() < prefetchHoldUntil) {
-        warmupTimer = window.setTimeout(run, 600);
-        return;
-      }
+        const index = order[cursor];
+        cursor += 1;
+        if (index == null) return;
 
-      const index = order[cursor];
-      cursor += 1;
-      if (index == null) return;
-
-      await loadPage(index, 'low');
-
-      if (cursor < order.length) {
-        warmupTimer = window.setTimeout(run, 170);
+        await loadPage(index, 'low');
+        await delay(120);
       }
     };
 
-    // Deliberately start after the intro and first paint. This is a low-priority
-    // cache warmup, never part of the critical initial load.
-    warmupTimer = window.setTimeout(run, 3800);
+    // Start after the intro and first paint. Three low-priority workers keep the
+    // first screen untouched while the rest of the catalogue fills in gradually.
+    warmupTimer = window.setTimeout(() => {
+      warmupTimer = 0;
+      for (let workerIndex = 0; workerIndex < 3; workerIndex += 1) {
+        window.setTimeout(worker, workerIndex * 160);
+      }
+    }, 2600);
   }
 
   /* ---------- Layout ---------- */
