@@ -1,4 +1,4 @@
-/* =========================================================
+﻿/* =========================================================
    千寻电气 · 产品图册
    Custom two-page / single-page flipbook
    No framework, no network dependency
@@ -187,7 +187,7 @@
   let modalLastFocus = null;
   let searchItems = [];
   let searchActive = -1;
-  const PUBLIC_URL = 'https://echoo395.github.io/echoos/';
+  const PUBLIC_URL = 'https://refit-no1.github.io/Album/';
   const SHARE_QR = 'assets/brand/share-qr.png';
   const CONTACT_INFO = {
     address: {
