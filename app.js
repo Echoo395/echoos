@@ -1,4 +1,4 @@
-﻿/* =========================================================
+/* =========================================================
    千寻电气 · 产品图册
    Custom two-page / single-page flipbook
    No framework, no network dependency
@@ -253,14 +253,6 @@
   };
 
   let lastTap = { time: 0, x: 0, y: 0 };
-
-  const mobileSwipe = {
-    active: false,
-    pointerId: null,
-    pointerType: 'touch',
-    startX: 0,
-    startY: 0
-  };
 
   /* ---------- Helpers ---------- */
 
@@ -736,7 +728,7 @@
     const height = dom.bookViewport.clientHeight;
     if (!width || !height) return;
 
-    flipCanvasDpr = Math.min(window.devicePixelRatio || 1, 2);
+    flipCanvasDpr = Math.min(window.devicePixelRatio || 1, isMobilePageTurn() ? 1.35 : 2);
     const pixelWidth = Math.round(width * flipCanvasDpr);
     const pixelHeight = Math.round(height * flipCanvasDpr);
 
@@ -751,7 +743,7 @@
     if (flipContext) {
       flipContext.setTransform(flipCanvasDpr, 0, 0, flipCanvasDpr, 0, 0);
       flipContext.imageSmoothingEnabled = true;
-      flipContext.imageSmoothingQuality = 'high';
+      flipContext.imageSmoothingQuality = isMobilePageTurn() ? 'low' : 'high';
     }
   }
 
@@ -1276,7 +1268,7 @@
     const distance = Math.abs(toProgress - fromProgress);
     const duration = REDUCED_MOTION
       ? 1
-      : Math.max(220, 560 * distance + (fromProgress > 0.01 ? 80 : 0));
+      : Math.max(220, (isMobilePageTurn() ? 420 : 560) * distance + (fromProgress > 0.01 ? 80 : 0));
     const startTime = performance.now();
     const startProgress = fromProgress;
     const easing = easePageTurn;
@@ -1301,91 +1293,35 @@
     rafId = window.requestAnimationFrame(tick);
   }
 
-  function createMobileTurnSheet(view, target, direction) {
-    const full = mode === 'single';
-    const half = mode === 'spread' && view.kind === 'inner' && target.kind === 'inner';
-    if (!full && !half) return null;
-
-    const index = full
-      ? view.single
-      : (direction > 0 ? view.right : view.left);
-    if (index == null) return null;
-
-    const sheet = document.createElement('div');
-    sheet.className = [
-      'mobile-turn-sheet',
-      direction > 0 ? 'is-forward' : 'is-back',
-      full ? 'is-full' : 'is-half'
-    ].join(' ');
-    sheet.style.backgroundImage = `url("${pageImageSource(index)}")`;
-    dom.spread.appendChild(sheet);
-    return sheet;
-  }
-
-  function navigateMobileSimple(direction) {
-    if (!ready || busy) return;
-    const target = targetView(direction);
-    if (!target) return;
-
-    hideHint();
-    busy = true;
-    playTurnSound();
-
-    const pages = viewPages(target);
-    pages.forEach((index) => {
-      loadThumb(index);
-      loadPage(index);
-    });
-
-    const oldView = currentView();
-    const sheet = createMobileTurnSheet(oldView, target, direction);
-
-    setStateFromView(target);
-    renderStatic(currentView());
-    applyRestLayout();
-    updateUI();
-    preloadAround();
-
-    if (sheet) {
-      window.requestAnimationFrame(() => {
-        sheet.classList.add('is-turning');
-        window.setTimeout(() => {
-          sheet.remove();
-          busy = false;
-          preloadAround();
-        }, 280);
-      });
-      return;
-    }
-
-    // Cover/back inside spread: keep a light fade fallback.
-    dom.app.classList.add('is-jumping');
-    window.setTimeout(() => {
-      dom.app.classList.remove('is-jumping');
-      window.setTimeout(() => {
-        busy = false;
-        preloadAround();
-      }, 120);
-    }, 100);
-  }
-
   async function navigate(direction) {
     if (!ready || busy) return;
     const target = targetView(direction);
     if (!target) return;
 
-    if (isMobilePageTurn()) {
-      navigateMobileSimple(direction);
-      return;
-    }
+    const mobileTurn = isMobilePageTurn();
+    const targetPages = viewPages(target);
 
     hideHint();
     busy = true;
 
     await Promise.race([
-      Promise.all([...viewPages(currentView()), ...viewPages(target)].map(loadPage)),
-      delay(40)
+      Promise.all([...viewPages(currentView()), ...targetPages].map(loadPage)),
+      delay(mobileTurn ? 1200 : 40)
     ]);
+
+    if (mobileTurn) {
+      await Promise.race([
+        Promise.all(targetPages.map(decodePage)),
+        delay(180)
+      ]);
+
+      const readyToFlip = targetPages.every((index) => loadedSources.has(pageImageSource(index)));
+      if (!readyToFlip) {
+        busy = false;
+        showToast('页面加载中，请稍候', 1200);
+        return;
+      }
+    }
 
     if (!ready) {
       busy = false;
@@ -2220,16 +2156,6 @@
     if (!ready || busy || event.button > 0 || drawerOpen || zoomState.open) return;
     if (event.target.closest('button, a, input')) return;
 
-    if (isMobilePageTurn()) {
-      mobileSwipe.active = true;
-      mobileSwipe.pointerId = event.pointerId;
-      mobileSwipe.pointerType = event.pointerType || 'touch';
-      mobileSwipe.startX = event.clientX;
-      mobileSwipe.startY = event.clientY;
-      dom.bookViewport.setPointerCapture?.(event.pointerId);
-      return;
-    }
-
     drag.active = true;
     drag.prepared = false;
     drag.pointerId = event.pointerId;
@@ -2261,14 +2187,6 @@
   }
 
   function moveDrag(event) {
-    if (mobileSwipe.active) {
-      if (event.pointerId !== mobileSwipe.pointerId) return;
-      const dx = event.clientX - mobileSwipe.startX;
-      const dy = event.clientY - mobileSwipe.startY;
-      if (Math.abs(dx) > 8 && Math.abs(dx) > Math.abs(dy) * 1.1) event.preventDefault();
-      return;
-    }
-
     if (!drag.active || event.pointerId !== drag.pointerId) return;
     if (!ready || drawerOpen || zoomState.open) {
       endDrag(event, true);
@@ -2331,32 +2249,6 @@
   }
 
   function endDrag(event, cancelled = false) {
-    if (mobileSwipe.active) {
-      const dx = event.clientX - mobileSwipe.startX;
-      const dy = event.clientY - mobileSwipe.startY;
-      const pointerType = mobileSwipe.pointerType;
-      const startX = mobileSwipe.startX;
-      const startY = mobileSwipe.startY;
-
-      mobileSwipe.active = false;
-      mobileSwipe.pointerId = null;
-
-      if (dom.bookViewport.hasPointerCapture?.(event.pointerId)) {
-        try {
-          dom.bookViewport.releasePointerCapture(event.pointerId);
-        } catch (error) {
-          /* ignore */
-        }
-      }
-
-      if (!cancelled && Math.abs(dx) > 46 && Math.abs(dx) > Math.abs(dy) * 1.15) {
-        navigate(dx < 0 ? 1 : -1);
-      } else if (!cancelled && Math.abs(dx) < 12 && Math.abs(dy) < 12) {
-        handleTap(event, pointerType, startX, startY);
-      }
-      return;
-    }
-
     if (!drag.active && !drag.prepared) return;
 
     const wasPrepared = drag.prepared;
