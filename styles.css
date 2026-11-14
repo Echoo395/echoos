@@ -4369,8 +4369,8 @@ html.is-wechat-ios .app {
     will-change: transform, opacity;
     pointer-events: none;
     transition:
-      transform .38s cubic-bezier(.24, .72, .24, 1),
-      opacity .38s ease;
+      transform .26s cubic-bezier(.24, .72, .24, 1),
+      opacity .26s ease;
   }
 
   .mobile-turn-sheet::after {

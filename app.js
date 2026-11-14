@@ -1,4 +1,4 @@
-/* =========================================================
+﻿/* =========================================================
    千寻电气 · 产品图册
    Custom two-page / single-page flipbook
    No framework, no network dependency
@@ -471,6 +471,14 @@
     return source ? loadSource(source, priority) : Promise.resolve();
   }
 
+  function loadThumb(index) {
+    const page = PAGES[index];
+    if (!page || !page.thumb) return;
+    const image = new Image();
+    image.decoding = 'async';
+    image.src = page.thumb;
+  }
+
   async function decodePage(index) {
     const source = pageImageSource(index);
     const image = source ? loadedImages.get(source) : null;
@@ -581,6 +589,7 @@
     }
 
     Array.from(indexes).slice(0, 6).forEach((index) => {
+      if (isMobilePageTurn()) loadThumb(index);
       const timer = window.setTimeout(() => loadPage(index), 90);
       void timer;
     });
@@ -1323,52 +1332,41 @@
     playTurnSound();
 
     const pages = viewPages(target);
-    Promise.race([
-      Promise.all(pages.map(loadPage)),
-      delay(1400)
-    ]).then(() => Promise.race([
-      Promise.all(pages.map(decodePage)),
-      delay(200)
-    ])).then(async () => {
-      if (!ready) {
-        busy = false;
-        return;
-      }
+    pages.forEach((index) => {
+      loadThumb(index);
+      loadPage(index);
+    });
 
-      const readyToShow = pages.every((index) => loadedSources.has(pageImageSource(index)));
-      if (!readyToShow) {
-        busy = false;
-        showToast('页面加载中，请稍候', 1200);
-        return;
-      }
+    const oldView = currentView();
+    const sheet = createMobileTurnSheet(oldView, target, direction);
 
-      const oldView = currentView();
-      const sheet = createMobileTurnSheet(oldView, target, direction);
+    setStateFromView(target);
+    renderStatic(currentView());
+    applyRestLayout();
+    updateUI();
+    preloadAround();
 
-      setStateFromView(target);
-      renderStatic(currentView());
-      applyRestLayout();
-      updateUI();
-      preloadAround();
-
-      if (sheet) {
-        await new Promise((resolve) => window.requestAnimationFrame(resolve));
+    if (sheet) {
+      window.requestAnimationFrame(() => {
         sheet.classList.add('is-turning');
-        await delay(400);
-        sheet.remove();
+        window.setTimeout(() => {
+          sheet.remove();
+          busy = false;
+          preloadAround();
+        }, 280);
+      });
+      return;
+    }
+
+    // Cover/back inside spread: keep a light fade fallback.
+    dom.app.classList.add('is-jumping');
+    window.setTimeout(() => {
+      dom.app.classList.remove('is-jumping');
+      window.setTimeout(() => {
         busy = false;
         preloadAround();
-        return;
-      }
-
-      // Cover/back inside spread: keep a light fade fallback.
-      dom.app.classList.add('is-jumping');
-      await delay(100);
-      dom.app.classList.remove('is-jumping');
-      await delay(120);
-      busy = false;
-      preloadAround();
-    });
+      }, 120);
+    }, 100);
   }
 
   async function navigate(direction) {
