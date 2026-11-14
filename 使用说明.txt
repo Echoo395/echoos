@@ -52,7 +52,8 @@ styles.css          界面样式
 app.js              翻页、目录、缩放等交互
 data/pages.js       页面顺序与标题清单
 data/toc.js         从第 3 张目录页提取的系列目录文案
-assets/pages/       网页用优化图（1440px 宽 WebP）
+assets/pages/       桌面用页面图（1440px 宽 WebP）
+assets/pages-mobile/ 手机用页面图（800px 宽 WebP）
 assets/thumbs/      页面缩略图
 assets/zoom/        用于高清放大的 2480×3366 原图 JPG
 assets/brand/       左上角 Chaser LOGO、分享二维码

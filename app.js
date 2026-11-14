@@ -254,6 +254,14 @@
 
   let lastTap = { time: 0, x: 0, y: 0 };
 
+  const mobileSwipe = {
+    active: false,
+    pointerId: null,
+    pointerType: 'touch',
+    startX: 0,
+    startY: 0
+  };
+
   /* ---------- Helpers ---------- */
 
   const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
@@ -449,12 +457,22 @@
     return promise;
   }
 
+  function pageImageSource(index) {
+    const page = PAGES[index];
+    if (!page) return '';
+    if (window.innerWidth <= 1000 && (IS_COARSE || isTouchDevice())) {
+      return page.page.replace('/pages/', '/pages-mobile/');
+    }
+    return page.page;
+  }
+
   function loadPage(index, priority = 'auto') {
-    return PAGES[index] ? loadSource(PAGES[index].page, priority) : Promise.resolve();
+    const source = pageImageSource(index);
+    return source ? loadSource(source, priority) : Promise.resolve();
   }
 
   async function decodePage(index) {
-    const source = PAGES[index] && PAGES[index].page;
+    const source = pageImageSource(index);
     const image = source ? loadedImages.get(source) : null;
     if (image && typeof image.decode === 'function') {
       try {
@@ -474,7 +492,7 @@
 
     await Promise.race([
       Promise.all(pages.map(async (index) => {
-        const image = loadedImages.get(PAGES[index]?.page);
+        const image = loadedImages.get(pageImageSource(index));
         if (image && typeof image.decode === 'function') {
           try {
             await image.decode();
@@ -498,11 +516,12 @@
 
     const page = PAGES[index];
     if (!page) return;
+    const source = pageImageSource(index);
 
-    if (image.dataset.src !== page.page) {
-      image.dataset.src = page.page;
+    if (image.dataset.src !== source) {
+      image.dataset.src = source;
       image.classList.remove('is-ready');
-      image.src = page.page;
+      image.src = source;
       image.alt = page.title;
     }
 
@@ -510,7 +529,7 @@
       image.classList.add('is-ready');
     } else {
       image.onload = () => {
-        if (image.dataset.src === page.page) image.classList.add('is-ready');
+        if (image.dataset.src === source) image.classList.add('is-ready');
       };
     }
   }
@@ -568,7 +587,8 @@
   }
 
   function queuePageCacheWarmup() {
-    if (isTouchDevice() || window.innerWidth < 900) return;
+    const mobile = isTouchDevice() && window.innerWidth <= 1000;
+    if (!mobile && (isTouchDevice() || window.innerWidth < 900)) return;
     if (navigator.connection && navigator.connection.saveData) return;
     if (navigator.connection && /(^|-)2g$/.test(navigator.connection.effectiveType || '')) return;
     if (warmupStarted) return;
@@ -620,18 +640,18 @@
         if (index == null) return;
 
         await loadPage(index, 'low');
-        await delay(120);
+        await delay(mobile ? 180 : 120);
       }
     };
 
-    // Start after the intro and first paint. Three low-priority workers keep the
-    // first screen untouched while the rest of the catalogue fills in gradually.
+    const workers = mobile ? 2 : 3;
+    const startDelay = mobile ? 2200 : 2600;
     warmupTimer = window.setTimeout(() => {
       warmupTimer = 0;
-      for (let workerIndex = 0; workerIndex < 3; workerIndex += 1) {
-        window.setTimeout(worker, workerIndex * 160);
+      for (let workerIndex = 0; workerIndex < workers; workerIndex += 1) {
+        window.setTimeout(worker, workerIndex * (mobile ? 260 : 160));
       }
-    }, 2600);
+    }, startDelay);
   }
 
   /* ---------- Layout ---------- */
@@ -640,6 +660,10 @@
     return navigator.maxTouchPoints > 0
       || 'ontouchstart' in window
       || window.matchMedia('(pointer: coarse)').matches;
+  }
+
+  function isMobilePageTurn() {
+    return IS_COARSE && window.innerWidth <= 1000;
   }
 
   function detectMode() {
@@ -1092,8 +1116,8 @@
       options
     };
 
-    const frontSource = content.frontIndex != null ? PAGES[content.frontIndex].page : null;
-    const backSource = content.backIndex != null ? PAGES[content.backIndex].page : null;
+    const frontSource = content.frontIndex != null ? pageImageSource(content.frontIndex) : null;
+    const backSource = content.backIndex != null ? pageImageSource(content.backIndex) : null;
 
     flip.frontImage = frontSource ? (loadedImages.get(frontSource) || null) : null;
     flip.backImage = backSource ? (loadedImages.get(backSource) || null) : null;
@@ -1111,8 +1135,8 @@
     setLeafPage(dom.leafRight, dom.imgRight, content.current.right);
     setLeafPage(dom.leafSingle, dom.imgSingle, content.current.single ?? null);
 
-    if (content.frontIndex != null) flipImageFront.src = PAGES[content.frontIndex].page;
-    if (content.backIndex != null) flipImageBack.src = PAGES[content.backIndex].page;
+    if (content.frontIndex != null) flipImageFront.src = pageImageSource(content.frontIndex);
+    if (content.backIndex != null) flipImageBack.src = pageImageSource(content.backIndex);
 
     resizeFlipCanvas();
     dom.flipCanvas.classList.add('is-active');
@@ -1268,10 +1292,62 @@
     rafId = window.requestAnimationFrame(tick);
   }
 
+  function navigateMobileSimple(direction) {
+    if (!ready || busy) return;
+    const target = targetView(direction);
+    if (!target) return;
+
+    hideHint();
+    busy = true;
+    playTurnSound();
+
+    const pages = viewPages(target);
+    Promise.race([
+      Promise.all(pages.map(loadPage)),
+      delay(1400)
+    ]).then(() => Promise.race([
+      Promise.all(pages.map(decodePage)),
+      delay(200)
+    ])).then(async () => {
+      if (!ready) {
+        busy = false;
+        return;
+      }
+
+      const readyToShow = pages.every((index) => loadedSources.has(pageImageSource(index)));
+      if (!readyToShow) {
+        busy = false;
+        showToast('页面加载中，请稍候', 1200);
+        return;
+      }
+
+      dom.app.classList.add('is-jumping');
+      await delay(120);
+      setStateFromView(target);
+      renderStatic(currentView());
+      applyRestLayout();
+      updateUI();
+      preloadAround();
+
+      window.requestAnimationFrame(() => {
+        dom.app.classList.remove('is-jumping');
+        window.setTimeout(() => {
+          busy = false;
+          preloadAround();
+        }, 110);
+      });
+    });
+  }
+
   async function navigate(direction) {
     if (!ready || busy) return;
     const target = targetView(direction);
     if (!target) return;
+
+    if (isMobilePageTurn()) {
+      navigateMobileSimple(direction);
+      return;
+    }
 
     hideHint();
     busy = true;
@@ -1965,7 +2041,7 @@
     dom.zoomLoading.classList.add('is-visible');
     dom.zoomModal.classList.add('is-open');
 
-    dom.zoomImg.src = page.page;
+    dom.zoomImg.src = pageImageSource(index);
     if (dom.zoomImg.complete && dom.zoomImg.naturalWidth) {
       window.requestAnimationFrame(handleZoomImageLoad);
     }
@@ -2114,6 +2190,16 @@
     if (!ready || busy || event.button > 0 || drawerOpen || zoomState.open) return;
     if (event.target.closest('button, a, input')) return;
 
+    if (isMobilePageTurn()) {
+      mobileSwipe.active = true;
+      mobileSwipe.pointerId = event.pointerId;
+      mobileSwipe.pointerType = event.pointerType || 'touch';
+      mobileSwipe.startX = event.clientX;
+      mobileSwipe.startY = event.clientY;
+      dom.bookViewport.setPointerCapture?.(event.pointerId);
+      return;
+    }
+
     drag.active = true;
     drag.prepared = false;
     drag.pointerId = event.pointerId;
@@ -2145,6 +2231,14 @@
   }
 
   function moveDrag(event) {
+    if (mobileSwipe.active) {
+      if (event.pointerId !== mobileSwipe.pointerId) return;
+      const dx = event.clientX - mobileSwipe.startX;
+      const dy = event.clientY - mobileSwipe.startY;
+      if (Math.abs(dx) > 8 && Math.abs(dx) > Math.abs(dy) * 1.1) event.preventDefault();
+      return;
+    }
+
     if (!drag.active || event.pointerId !== drag.pointerId) return;
     if (!ready || drawerOpen || zoomState.open) {
       endDrag(event, true);
@@ -2207,6 +2301,32 @@
   }
 
   function endDrag(event, cancelled = false) {
+    if (mobileSwipe.active) {
+      const dx = event.clientX - mobileSwipe.startX;
+      const dy = event.clientY - mobileSwipe.startY;
+      const pointerType = mobileSwipe.pointerType;
+      const startX = mobileSwipe.startX;
+      const startY = mobileSwipe.startY;
+
+      mobileSwipe.active = false;
+      mobileSwipe.pointerId = null;
+
+      if (dom.bookViewport.hasPointerCapture?.(event.pointerId)) {
+        try {
+          dom.bookViewport.releasePointerCapture(event.pointerId);
+        } catch (error) {
+          /* ignore */
+        }
+      }
+
+      if (!cancelled && Math.abs(dx) > 46 && Math.abs(dx) > Math.abs(dy) * 1.15) {
+        navigate(dx < 0 ? 1 : -1);
+      } else if (!cancelled && Math.abs(dx) < 12 && Math.abs(dy) < 12) {
+        handleTap(event, pointerType, startX, startY);
+      }
+      return;
+    }
+
     if (!drag.active && !drag.prepared) return;
 
     const wasPrepared = drag.prepared;
