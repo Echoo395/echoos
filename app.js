@@ -1292,6 +1292,27 @@
     rafId = window.requestAnimationFrame(tick);
   }
 
+  function createMobileTurnSheet(view, target, direction) {
+    const full = mode === 'single';
+    const half = mode === 'spread' && view.kind === 'inner' && target.kind === 'inner';
+    if (!full && !half) return null;
+
+    const index = full
+      ? view.single
+      : (direction > 0 ? view.right : view.left);
+    if (index == null) return null;
+
+    const sheet = document.createElement('div');
+    sheet.className = [
+      'mobile-turn-sheet',
+      direction > 0 ? 'is-forward' : 'is-back',
+      full ? 'is-full' : 'is-half'
+    ].join(' ');
+    sheet.style.backgroundImage = `url("${pageImageSource(index)}")`;
+    dom.spread.appendChild(sheet);
+    return sheet;
+  }
+
   function navigateMobileSimple(direction) {
     if (!ready || busy) return;
     const target = targetView(direction);
@@ -1321,21 +1342,32 @@
         return;
       }
 
-      dom.app.classList.add('is-jumping');
-      await delay(120);
+      const oldView = currentView();
+      const sheet = createMobileTurnSheet(oldView, target, direction);
+
       setStateFromView(target);
       renderStatic(currentView());
       applyRestLayout();
       updateUI();
       preloadAround();
 
-      window.requestAnimationFrame(() => {
-        dom.app.classList.remove('is-jumping');
-        window.setTimeout(() => {
-          busy = false;
-          preloadAround();
-        }, 110);
-      });
+      if (sheet) {
+        await new Promise((resolve) => window.requestAnimationFrame(resolve));
+        sheet.classList.add('is-turning');
+        await delay(400);
+        sheet.remove();
+        busy = false;
+        preloadAround();
+        return;
+      }
+
+      // Cover/back inside spread: keep a light fade fallback.
+      dom.app.classList.add('is-jumping');
+      await delay(100);
+      dom.app.classList.remove('is-jumping');
+      await delay(120);
+      busy = false;
+      preloadAround();
     });
   }
 
