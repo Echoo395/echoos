@@ -4307,3 +4307,43 @@ html.is-wechat-ios .app {
 .tool-btn--mobile.is-spread .page-icon-right {
   opacity: 1;
 }
+
+/* Desktop intro: larger brand and information block */
+@media (min-width: 901px) {
+  .intro-scene {
+    max-width: min(84vw, 980px);
+    padding: 64px 92px;
+  }
+
+  .intro-logo-base {
+    height: 116px;
+  }
+
+  .intro-name {
+    margin-top: 30px;
+    font-size: 38px;
+  }
+
+  .intro-full {
+    margin-top: 11px;
+    font-size: 15px;
+    letter-spacing: .22em;
+  }
+
+  .intro-rule {
+    width: 86px;
+    margin: 24px auto 18px;
+  }
+
+  .intro-en {
+    font-size: 11.5px;
+    letter-spacing: .2em;
+  }
+
+  .intro-tag {
+    margin-top: 13px;
+    font-size: 10px;
+    letter-spacing: .38em;
+    text-indent: .38em;
+  }
+}
