@@ -645,6 +645,7 @@
   function detectMode() {
     const width = window.innerWidth;
     const height = window.innerHeight;
+    if (orientationOverride && width > 1000) orientationOverride = null;
     if (orientationOverride) return orientationOverride;
     if (isTouchDevice() && width < 1100) return 'single';
     if (width < 900) return 'single';
@@ -771,11 +772,12 @@
   function updateOrientationButton() {
     if (!dom.rotateBtn) return;
     const target = mode === 'single' ? '双页' : '单页';
+    const spread = mode === 'spread';
     dom.rotateBtn.setAttribute('aria-label', `切换到${target}模式`);
     dom.rotateBtn.setAttribute('title', `切换到${target}模式`);
-    dom.rotateBtn.setAttribute('aria-pressed', String(Boolean(orientationOverride)));
-    dom.rotateBtn.classList.toggle('is-on', Boolean(orientationOverride));
-    dom.rotateBtn.classList.toggle('is-spread', mode === 'spread');
+    dom.rotateBtn.setAttribute('aria-pressed', String(spread));
+    dom.rotateBtn.classList.toggle('is-on', spread);
+    dom.rotateBtn.classList.toggle('is-spread', spread);
   }
 
   function toggleOrientation() {
@@ -2740,7 +2742,7 @@
   }
 
   function openSearch() {
-    if (!ready || searchOpen || window.innerWidth <= 900) return;
+    if (!ready || searchOpen || !dom.searchBtn || !dom.searchBtn.offsetParent) return;
     if (drawerOpen) closeDrawer(false);
     window.scrollTo(0, 0);
     searchOpen = true;
@@ -2860,6 +2862,7 @@
           ['左右拖动', '上一页 / 下一页'],
           ['双击页面', '放大当前页'],
           ['双指缩放', '放大后拖动查看'],
+          ['顶部单双页图标', '切换单页 / 双页'],
           ['底部页码 / 目录', '快速跳转系列或页面'],
           ['右上角分享', '分享整本图册'],
           ['右上角 ?', '随时打开本提示']

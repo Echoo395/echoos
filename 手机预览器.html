@@ -1,0 +1,478 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>千寻电气 · 手机端预览器</title>
+<style>
+  :root {
+    --bg: #040a12;
+    --panel: rgba(9, 23, 39, .86);
+    --line: rgba(112, 169, 232, .16);
+    --muted: rgba(155, 188, 224, .62);
+    --accent: #4aa8ff;
+    --font-ui: "PingFang SC", "Microsoft YaHei", "Noto Sans SC", sans-serif;
+    --font-num: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    overflow: hidden;
+    background: var(--bg);
+    color: #eaf4ff;
+    font-family: var(--font-ui);
+  }
+
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 65% 55% at 50% 38%, rgba(24, 74, 128, .28), transparent 68%),
+      radial-gradient(circle at 22% 22%, rgba(71, 148, 232, .1), transparent 28%),
+      radial-gradient(circle at 78% 72%, rgba(40, 96, 165, .12), transparent 30%),
+      #040a12;
+    pointer-events: none;
+  }
+
+  body::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background-image: radial-gradient(circle, rgba(185, 220, 255, .4) 0 1px, transparent 1.4px);
+    background-size: 79px 79px;
+    opacity: .16;
+    mask-image: radial-gradient(ellipse 70% 64% at 50% 48%, #000 10%, transparent 82%);
+    pointer-events: none;
+  }
+
+  .sim {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+    height: 100dvh;
+  }
+
+  .sim-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    flex: 0 0 70px;
+    padding: 0 clamp(18px, 3vw, 42px);
+    border-bottom: 1px solid var(--line);
+    background: linear-gradient(to bottom, rgba(5, 14, 24, .9), rgba(5, 14, 24, .45));
+    -webkit-backdrop-filter: blur(18px);
+    backdrop-filter: blur(18px);
+  }
+
+  .sim-brand {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    min-width: 0;
+  }
+
+  .sim-brand img {
+    display: block;
+    width: auto;
+    height: 30px;
+  }
+
+  .sim-brand-divider {
+    width: 1px;
+    height: 24px;
+    background: linear-gradient(transparent, rgba(125, 181, 240, .35), transparent);
+  }
+
+  .sim-brand h1 {
+    margin: 0;
+    color: #eef7ff;
+    font-size: 14px;
+    font-weight: 500;
+    letter-spacing: .08em;
+    white-space: nowrap;
+  }
+
+  .sim-brand small {
+    display: block;
+    margin-top: 2px;
+    color: var(--muted);
+    font-size: 9px;
+    font-weight: 400;
+    letter-spacing: .14em;
+  }
+
+  .sim-devices {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px;
+    border: 1px solid rgba(116, 173, 236, .12);
+    border-radius: 11px;
+    background: rgba(7, 19, 32, .55);
+  }
+
+  .sim-device-btn {
+    height: 30px;
+    padding: 0 11px;
+    border: 0;
+    border-radius: 7px;
+    background: transparent;
+    color: var(--muted);
+    font-family: var(--font-ui);
+    font-size: 10px;
+    letter-spacing: .04em;
+    cursor: pointer;
+    transition: color .2s ease, background .2s ease, box-shadow .2s ease, transform .2s ease;
+  }
+
+  .sim-device-btn:hover {
+    color: #eaf4ff;
+    background: rgba(74, 168, 255, .09);
+  }
+
+  .sim-device-btn.is-active {
+    color: #eaf4ff;
+    background: rgba(74, 168, 255, .16);
+    box-shadow: inset 0 0 0 1px rgba(94, 171, 255, .18), 0 0 16px rgba(47, 139, 234, .08);
+  }
+
+  .sim-device-btn:active { transform: scale(.97); }
+
+  .sim-tools {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .sim-tool {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    height: 32px;
+    padding: 0 10px;
+    border: 1px solid rgba(116, 173, 236, .13);
+    border-radius: 8px;
+    background: rgba(11, 27, 45, .55);
+    color: var(--muted);
+    font-family: var(--font-ui);
+    font-size: 10px;
+    letter-spacing: .04em;
+    cursor: pointer;
+    transition: color .2s ease, border-color .2s ease, background .2s ease, transform .2s ease;
+  }
+
+  .sim-tool:hover {
+    color: #fff;
+    border-color: rgba(104, 188, 255, .34);
+    background: rgba(25, 66, 111, .4);
+  }
+
+  .sim-tool.is-active {
+    color: #eaf4ff;
+    border-color: rgba(94, 171, 255, .32);
+    background: rgba(74, 168, 255, .15);
+  }
+
+  .sim-tool:active { transform: scale(.97); }
+
+  .sim-tool svg {
+    width: 14px;
+    height: 14px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.6;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .sim-stage {
+    display: flex;
+    flex: 1 1 auto;
+    align-items: center;
+    justify-content: center;
+    min-height: 0;
+    padding: 14px;
+    overflow: hidden;
+  }
+
+  .sim-stage.is-actual {
+    display: block;
+    overflow: auto;
+    padding: 18px;
+  }
+
+  .device-wrap {
+    flex: 0 0 auto;
+    width: 414px;
+    height: 868px;
+  }
+
+  .sim-stage.is-actual .device-wrap {
+    margin: 0 auto;
+  }
+
+  .device {
+    position: relative;
+    width: calc(var(--sw, 390px) + 24px);
+    height: calc(var(--sh, 844px) + 24px);
+    padding: 12px;
+    border: 1px solid rgba(143, 194, 255, .22);
+    border-radius: 54px;
+    background: linear-gradient(145deg, #131d28, #020509 48%, #0a121b);
+    box-shadow:
+      0 30px 80px rgba(0, 0, 0, .55),
+      inset 0 0 0 1px rgba(255, 255, 255, .05),
+      inset 0 0 34px rgba(52, 125, 215, .13);
+    transform: scale(var(--sim-scale, .8));
+    transform-origin: top left;
+  }
+
+  .device-screen {
+    position: relative;
+    width: var(--sw, 390px);
+    height: var(--sh, 844px);
+    overflow: hidden;
+    border-radius: 42px;
+    background: #fff;
+  }
+
+  .device-screen iframe {
+    display: block;
+    width: 100%;
+    height: 100%;
+    border: 0;
+    background: #fff;
+  }
+
+  .device-notch {
+    position: absolute;
+    z-index: 2;
+    top: 12px;
+    left: 50%;
+    width: 112px;
+    height: 26px;
+    border-radius: 0 0 16px 16px;
+    background: #020509;
+    transform: translateX(-50%);
+    pointer-events: none;
+    box-shadow: 0 1px 0 rgba(255, 255, 255, .04);
+  }
+
+  .device-side {
+    position: absolute;
+    width: 3px;
+    border-radius: 3px;
+    background: linear-gradient(#26313d, #080d12);
+  }
+
+  .device-side--power {
+    right: -3px;
+    top: 196px;
+    height: 76px;
+  }
+
+  .device-side--volume {
+    left: -3px;
+    top: 168px;
+    height: 58px;
+  }
+
+  .sim-foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    flex: 0 0 40px;
+    padding: 0 clamp(18px, 3vw, 42px);
+    border-top: 1px solid rgba(112, 169, 232, .1);
+    color: var(--muted);
+    font-size: 9px;
+    letter-spacing: .04em;
+  }
+
+  .sim-meta {
+    font-family: var(--font-num);
+    letter-spacing: .08em;
+  }
+
+  .sim-note {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .sim-note i {
+    width: 3px;
+    height: 3px;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 8px rgba(74, 168, 255, .8);
+  }
+
+  @media (max-width: 900px) {
+    .sim-head { gap: 8px; padding: 0 12px; flex-basis: 62px; }
+    .sim-brand img { height: 24px; }
+    .sim-brand-divider, .sim-brand small { display: none; }
+    .sim-brand h1 { font-size: 12px; }
+    .sim-devices { gap: 2px; padding: 3px; }
+    .sim-device-btn { padding: 0 7px; font-size: 9px; }
+    .sim-tools .sim-tool span { display: none; }
+    .sim-tool { width: 32px; padding: 0; }
+  }
+
+  @media (max-height: 700px) {
+    .sim-head { flex-basis: 60px; }
+    .sim-foot { flex-basis: 32px; }
+    .sim-stage { padding: 8px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { transition-duration: .001ms !important; animation-duration: .001ms !important; }
+  }
+</style>
+</head>
+<body>
+  <div class="sim">
+    <header class="sim-head">
+      <div class="sim-brand">
+        <img src="assets/brand/chaser-logo.webp" alt="Chaser 千寻电气">
+        <span class="sim-brand-divider" aria-hidden="true"></span>
+        <div>
+          <h1>手机端预览器</h1>
+          <small>MOBILE DEVICE SIMULATOR</small>
+        </div>
+      </div>
+
+      <div class="sim-devices" role="group" aria-label="选择手机尺寸">
+        <button class="sim-device-btn is-active" type="button" data-device="iphone">iPhone 14</button>
+        <button class="sim-device-btn" type="button" data-device="android">Android</button>
+        <button class="sim-device-btn" type="button" data-device="compact">小屏</button>
+      </div>
+
+      <div class="sim-tools">
+        <button class="sim-tool" id="actualBtn" type="button" title="切换 1:1 实际尺寸">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 9h8M8 12h8M8 15h5"/></svg>
+          <span>1:1</span>
+        </button>
+        <button class="sim-tool" id="reloadBtn" type="button" title="重新加载预览">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19.2 8.2A7.7 7.7 0 1 0 20 14"/><path d="M19.4 4.6v3.9h-3.9"/></svg>
+          <span>刷新</span>
+        </button>
+      </div>
+    </header>
+
+    <main class="sim-stage" id="stage">
+      <div class="device-wrap" id="deviceWrap">
+        <div class="device" id="device">
+          <span class="device-notch" aria-hidden="true"></span>
+          <span class="device-side device-side--power" aria-hidden="true"></span>
+          <span class="device-side device-side--volume" aria-hidden="true"></span>
+          <div class="device-screen" id="deviceScreen">
+            <iframe id="previewFrame" title="手机端图册预览" src="index.html?preview=1"></iframe>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <footer class="sim-foot">
+      <span class="sim-note"><i></i> 独立预览程序，不影响网页版图册</span>
+      <span class="sim-meta" id="deviceMeta">390 × 844 · 默认单页 / 可切双页</span>
+      <span>拖动翻页 · 点击目录 · 双击放大</span>
+    </footer>
+  </div>
+
+  <script>
+    (() => {
+      const stage = document.getElementById('stage');
+      const wrap = document.getElementById('deviceWrap');
+      const device = document.getElementById('device');
+      const screen = document.getElementById('deviceScreen');
+      const frame = document.getElementById('previewFrame');
+      const meta = document.getElementById('deviceMeta');
+      const actualBtn = document.getElementById('actualBtn');
+      const reloadBtn = document.getElementById('reloadBtn');
+      const deviceButtons = Array.from(document.querySelectorAll('.sim-device-btn'));
+
+      const devices = {
+        iphone: { width: 390, height: 844, label: 'iPhone 14' },
+        android: { width: 360, height: 800, label: 'Android' },
+        compact: { width: 320, height: 700, label: '小屏' }
+      };
+
+      let current = devices.iphone;
+      let actualSize = false;
+
+      const setDevice = (deviceName) => {
+        current = devices[deviceName] || devices.iphone;
+        deviceButtons.forEach((button) => {
+          const active = button.dataset.device === deviceName;
+          button.classList.toggle('is-active', active);
+          button.setAttribute('aria-pressed', String(active));
+        });
+
+        device.style.setProperty('--sw', `${current.width}px`);
+        device.style.setProperty('--sh', `${current.height}px`);
+        screen.style.setProperty('--sw', `${current.width}px`);
+        screen.style.setProperty('--sh', `${current.height}px`);
+        meta.textContent = `${current.width} × ${current.height} · ${current.label} · 默认单页 / 可切双页`;
+        fit();
+      };
+
+      const fit = () => {
+        const outerWidth = current.width + 24;
+        const outerHeight = current.height + 24;
+
+        if (actualSize) {
+          stage.classList.add('is-actual');
+          device.style.setProperty('--sim-scale', '1');
+          wrap.style.width = `${outerWidth}px`;
+          wrap.style.height = `${outerHeight}px`;
+          return;
+        }
+
+        stage.classList.remove('is-actual');
+        const availableWidth = Math.max(240, stage.clientWidth - 44);
+        const availableHeight = Math.max(320, stage.clientHeight - 24);
+        const scale = Math.min(1, availableWidth / outerWidth, availableHeight / outerHeight);
+        device.style.setProperty('--sim-scale', scale.toFixed(4));
+        wrap.style.width = `${outerWidth * scale}px`;
+        wrap.style.height = `${outerHeight * scale}px`;
+      };
+
+      const reload = () => {
+        frame.src = `index.html?preview=1&r=${Date.now()}`;
+        fit();
+      };
+
+      deviceButtons.forEach((button) => {
+        button.addEventListener('click', () => setDevice(button.dataset.device));
+      });
+
+      actualBtn.addEventListener('click', () => {
+        actualSize = !actualSize;
+        actualBtn.classList.toggle('is-active', actualSize);
+        actualBtn.querySelector('span').textContent = actualSize ? '适配' : '1:1';
+        fit();
+      });
+
+      reloadBtn.addEventListener('click', reload);
+      window.addEventListener('resize', fit);
+
+      // Wait for the iframe layout to settle before calculating the first scale.
+      window.setTimeout(fit, 120);
+      window.setTimeout(fit, 900);
+      window.addEventListener('load', fit);
+    })();
+  </script>
+</body>
+</html>
